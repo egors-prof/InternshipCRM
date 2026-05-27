@@ -1,0 +1,4 @@
+code,name,descr
+ADMIN,CRM Admin,Internal Customer Relationship Management Administrator
+VENDOR,Vendor,External Third-Party Product Vendor
+VENDOR_ADMIN,Vendor Admin,External product supplier administrator

@@ -1,0 +1,5 @@
+code,name,descr,criticality
+LOW,Low,Standard priority issue,3
+MEDIUM,Medium,Elevated priority issue,2
+HIGH,High,High priority issue,1
+URGENT,Urgent,Immediate action required,1

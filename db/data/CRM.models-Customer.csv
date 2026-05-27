@@ -1,0 +1,6 @@
+ID,firstName,lastName,email,totalSpend,customerStatus_code
+1a9e8315-f455-4fd4-a323-ae4a3fb9acba,John,Doe,john.doe@example.com,12500.50,GOLD
+2b8f9426-a566-5fe5-b434-bf5b4fcafdbb,Jane,Smith,jane.smith@example.com,4320.00,SILVER
+3c9g0537-b677-6f66-c545-cg6c5gdbgfcc,Alex,Jones,alex.jones@example.com,150.75,BRONZE
+4d0h1648-c788-7g77-d656-dh7d6hchcgdd,Emily,Brown,emily.brown@example.com,0.00,BRONZE
+5e1i2759-d899-8h88-e767-ei8e7ididhfe,Michael,Green,michael.green@example.com,9850.20,GOLD

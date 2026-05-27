@@ -1,0 +1,70 @@
+{
+  "name": "crm",
+  "version": "1.0.0",
+  "description": "Secure Helpdesk System",
+  "repository": "mock",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@sap/cds": "^9.9.1",
+    "express": "^4"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": "^2",
+    "cds-plugin-ui5": "^0.13.0",
+    "sqlite3": "^5.1.7"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch-userapp": "cds watch --open userapp/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-vendors": "cds watch --open vendors/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-products": "cds watch --open products/index.html?sap-ui-xx-viewCache=false --livereload false"
+  },
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "credentials": {
+          "url": "crm-demo.db"
+        }
+      },
+      "auth": {
+        "kind": "mocked",
+        "users": {
+          "alice": {
+            "password": "alice",
+            "roles": [
+              "CRMAdmin",
+              "admin"
+            ]
+          },
+          "bob": {
+            "password": "bob",
+            "roles": [
+              "Vendor"
+            ],
+            "attr": {
+              "vendorId": "30000000-0000-0000-0000-000000000001"
+            }
+          },
+          "charlie": {
+            "password": "charlie",
+            "roles": [
+              "Vendor"
+            ],
+            "attr": {
+              "vendorId": "30000000-0000-0000-0000-000000000002"
+            }
+          }
+        }
+      }
+    }
+  },
+  "workspaces": [
+    "app/*"
+  ],
+  "sapux": [
+    "app/userapp",
+    "app/vendors",
+    "app/products"
+  ]
+}
