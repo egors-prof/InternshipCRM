@@ -131,7 +131,8 @@
                     "type": "ResponsiveTable"
                   }
                 }
-              }
+              },
+              "initialLoad": "Enabled"
             }
           }
         },
@@ -182,7 +183,19 @@
           "options": {
             "settings": {
               "navigation": {},
-              "contextPath": "/Customers/interactions"
+              "contextPath": "/Customers/interactions",
+              "controlConfiguration": {
+                "order/items/@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "selectionMode": "Multi"
+                  }
+                },
+                "logs/@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "selectionMode": "Multi"
+                  }
+                }
+              }
             }
           }
         },

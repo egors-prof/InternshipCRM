@@ -81,6 +81,9 @@ annotate service.Customers with @(
         
     ],
 );
+annotate service.Customers with {
+    totalSpend @Measures.ISOCurrency : 'USD'
+};
 annotate service.Customers with @(
     UI.HeaderInfo : {
         TypeName       : 'Customer',
@@ -89,6 +92,7 @@ annotate service.Customers with @(
         Description    : { $Type : 'UI.DataField', Value : firstName }
     }
 );
+
 annotate service.Customers with @(
     UI.DataPoint #RatingDataPoint : {
         Value         : averageRating,
@@ -252,9 +256,9 @@ annotate service.OrderItems with {
 };
 annotate service.OrderItems with @(
     UI.LineItem : [
-        { $Type : 'UI.DataField', Value : product.content, Label : 'Preview', @UI.Importance : #High},
+        { $Type : 'UI.DataField', Value : product_content, Label : 'Preview', @UI.Importance : #High},
         { $Type : 'UI.DataField', Value : quantity ,Label:'Quantity',@UI.Importance : #High},
-        { $Type : 'UI.DataField', Value : product_ID, Label : 'Product',@UI.Importance : #High },
+        { $Type : 'UI.DataField', Value : product_content,Label:'Product Content',@UI.Importance : #High },
         { $Type : 'UI.DataField', Value : priceAtOrder,Label:'Price At Order',@UI.Importance : #High }
     ]
 );
@@ -267,56 +271,57 @@ annotate service.OrderItems with @(
         
     }
 );
+annotate service.OrderItems with {
+    product_content @(
+        Core.IsURl:false,
+        IsImage:true
+    );
+};
 annotate service.OrderItems with @Common.SideEffects : {
     $Type : 'Common.SideEffectType',
     SourceProperties : [ product_ID ],
-    TargetProperties : [ priceAtOrder, currency_code ] // Add currency_code here
+    TargetProperties : [ priceAtOrder ] 
 };
-annotate service.OrderItems with {
-    product @(
-        Common.ValueList : {
-            $Type : 'Common.ValueListType',
-            CollectionPath : 'Products',
-            Parameters : [
-                {
-                    $Type : 'Common.ValueListParameterInOut',
-                    LocalDataProperty : product_ID,
-                    ValueListProperty : 'ID'
-                },
+// annotate service.OrderItems with {
+//     product @(
+//         Common.ValueList : {
+//             $Type : 'Common.ValueListType',
+//             CollectionPath : 'Products',
+//             Parameters : [
+//                 {
+//                     $Type : 'Common.ValueListParameterInOut',
+//                     LocalDataProperty : product_ID,
+//                     ValueListProperty : 'ID'
+//                 },
                 
-                {
-                    $Type : 'Common.ValueListParameterDisplayOnly',
-                    ValueListProperty : 'title'
-                },
-                {
-                    // Column 2
-                    $Type : 'Common.ValueListParameterOut',
-                    LocalDataProperty:priceAtOrder,
-                    ValueListProperty : 'price'
-                },
-                {
-                    // Column 3
-                    $Type : 'Common.ValueListParameterDisplayOnly',
-                    ValueListProperty : 'stock'
-                },
-                {
-    
-                    $Type : 'Common.ValueListParameterOut',
-                    LocalDataProperty : currency_code,
-                    ValueListProperty : 'currency_code' 
-                },
-                {
-                    // Column 4
-                    $Type : 'Common.ValueListParameterDisplayOnly',
-                    ValueListProperty : 'category_ID', 
-                    Label : 'Category' // You can force a custom column header name here!
-                }
-            ]
-        },
-        Common.Text : product.title,
-        Common.TextArrangement : #TextOnly
-    );
-}
+//                 {
+//                     $Type : 'Common.ValueListParameterDisplayOnly',
+//                     ValueListProperty : 'title'
+//                 },
+//                 {
+//                     // Column 2
+//                     $Type : 'Common.ValueListParameterOut',
+//                     LocalDataProperty:priceAtOrder,
+//                     ValueListProperty : 'price'
+//                 },
+//                 {
+//                     // Column 3
+//                     $Type : 'Common.ValueListParameterDisplayOnly',
+//                     ValueListProperty : 'stock'
+//                 },
+                
+//                 {
+//                     // Column 4
+//                     $Type : 'Common.ValueListParameterDisplayOnly',
+//                     ValueListProperty : 'category_ID', 
+//                     Label : 'Category' // You can force a custom column header name here!
+//                 }
+//             ]
+//         },
+//         Common.Text : product.title,
+//         Common.TextArrangement : #TextOnly
+//     );
+// }
 
 
 annotate service.Interactions with @(
@@ -367,7 +372,10 @@ annotate service.Interactions with @(
                 Label : 'Currently responsible',
                 Value : currentOwner.name
             },
-            { $Type: 'UI.DataFieldForAction', Action: 'escalateToVendor', Label: 'Assign to Vendor' }
+            { $Type: 'UI.DataFieldForAction', Action: 'CRMService.escalateToVendor', Label: 'Assign to Vendor' },
+            { $Type: 'UI.DataFieldForAction', Action: 'CRMService.createLog', Label: 'Create Log' }
+
+
 
             
         ],
@@ -388,16 +396,17 @@ annotate service.Interactions with @(
         
         {
             $Type : 'UI.ReferenceFacet',
-            ID : 'GeneratedFacet2',
+            ID : 'LogsFacet',
             Label : 'Logs',
-            Target : 'logs/@UI.LineItem',
+            Target : 'logs/@UI.LineItem'
         },
         {
             $Type : 'UI.ReferenceFacet',
             ID : 'GeneratedFacet3',
             Label : 'Feedback',
             Target : 'reaction/@UI.FieldGroup#GeneralInfo',
-        }
+        },
+        
 
 
     ],
@@ -432,11 +441,17 @@ annotate service.Interactions with @(
 annotate service.InteractionLogs with {
     parent @UI.Hidden; 
 };
+annotate service.InteractionLogs with @(
+    Capabilities.SelectRestrictions : {
+        Selectable : true
+    }
+);
 annotate service.InteractionLogs with {
     isPrivate @UI.Hidden: {$edmJson: {$Eq: [{$Type: 'String', $Value: 'Vendor'}, {$Type: 'String', $Value: '$user.role'}]}};
 };
 annotate service.InteractionLogs with @(
     UI.LineItem: [
+        
         { $Type: 'UI.DataField', Value: createdBy, Label: 'Name',@UI.Importance: #High },
         { $Type: 'UI.DataField', Value: text, Label: 'Log Message',@UI.Importance: #High },
         { 
@@ -445,6 +460,31 @@ annotate service.InteractionLogs with @(
             Label: 'Private Note', 
             @UI.Importance: #High 
         },
+        {  
+            $Type: 'UI.DataFieldForAction',
+            Action: 'CRMService.makeVisibleToVendor', 
+            Label: 'Make Visible to Vendor',
+            // Inline: true,
+            // RequiresContext: true ,
+            @UI.Hidden: {
+                $edmJson: {
+                    $Eq: [ 
+                    { 
+                        $Type: 'String', 
+                        $Value: 'Vendor' 
+                    }, 
+                    {
+                        $Type: 'String', 
+                        $Value: '$user.role'
+                    } 
+                    ] 
+                } 
+            }
+
+        }
+        
+            
+
     ]
 );
 

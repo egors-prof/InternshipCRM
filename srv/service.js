@@ -4,7 +4,7 @@ module.exports = class CRMService extends cds.ApplicationService {
     async init() {
        
         await super.init();
-        const { Customers, Orders, OrderItems,Vendors,Products,Interactions } = this.entities;
+        const { Customers, Orders, OrderItems,Vendors,Products,InteractionLogs,Interactions,Feedback} = this.entities;
 
         this.on('getMyRoles', (req) => {
             console.log(req.user.is('admin'));
@@ -32,142 +32,111 @@ module.exports = class CRMService extends cds.ApplicationService {
             }
         });
 
-
-        this.on('READ', Customers, async (req, next) => {
-            console.log('customer req', req);
-            
-            if (req?.params[0]?.ID) {
-                let ids = [];
-                let total = 0;
-                let ratingSum = 0;
-                const customerID = req?.params[0]?.ID;
+        this.after('READ','Customers', async (results) => {
+            console.log(results);
+            const customers = Array.isArray(results) ? results : [results];
+        
+            for (const customer of customers) {
+                const feedbacks = await SELECT.from('Feedback').where({ customer_ID: customer.ID });
+                const orders = await SELECT.from('Order').where({ customer_ID: customer.ID });
+                const orderIds = orders.map(order => order.ID);
+                console.log('orders:',orders)
                 
-                console.log(customerID);
-                console.log('obj page');
-                
-                // Get the standard customer data from the database
-                const customer = await next();
-                customer.averageRating = 5.0;
-                
-                const orders = await SELECT.from(Orders).where({ customer_ID: customerID });
-                for (const order of orders) {
-                    ids.push(order.ID);
-                }
-                
-                console.log('ids', ids);
-                
-                if (ids.length > 0) {
-                    const items = await SELECT.from(OrderItems).where({ parent_ID: { in: ids } });
-                    console.log(items);
-                    
+                let totalSpend = 0;
+                if (orderIds.length > 0) {
+                    const items = await SELECT.from('OrderItems').where({ parent_ID: { 'in': orderIds } });
                     for (const item of items) {
-                        total += item.priceAtOrder * item.quantity;
-                        ratingSum += item.rating;
+                        totalSpend += (item.quantity * item.priceAtOrder);
                     }
-                    
-                    customer.totalSpend = total;
-                    customer.averageRating = ratingSum / items.length;
                 }
-            } else {
-                return next();
-            }
-        });
-
-        this.before('SAVE', 'Products', async (req) => {
-        if (req.data.content) {
-            const targetStream = req.data.content;
+                let ratingSum =0 ;
+                for (const feedback of feedbacks) {
+                    ratingSum+=feedback.rating;
+                }
+                
+                console.log('rating sum',ratingSum, 'feedbacks length', feedbacks.length, 'average', ratingSum/feedbacks.length);
+                customer.averageRating =feedbacks.length > 0 ? ratingSum/feedbacks.length : 0;
+                customer.totalSpend = totalSpend;
+                
         }
-    });
-// this.before('NEW', 'Products', (req) => {
-//         // Initialize the composition child for the file binary
-//         req.data.image = { 
-//             ID: cds.utils.uuid(),
-//             mediaType: 'image/png' 
-//         };
-
-//         // Fiori relies on this root-level property being populated to avoid the UI crash
-//         req.data.mediaType = 'image/png'; 
-
-//         // Apply vendor security context
-//         if (req.user.is('Vendor')) {
-//             req.data.vendor_ID = req.user.attr.vendorId;
-//         }
-//     });
-// this.on('READ', 'Products', async (req, next) => {
-//     const result = await next();
-//     // FIXED: Use req.params[0] to catch GET request URL parameters!
-//     if (result == null && req.params && req.params[0]?.IsActiveEntity === false) {
-//         return { 
-//             ID: req.params[0].ID, 
-//             IsActiveEntity: false, 
-//             HasActiveEntity: true 
-//         };
-//     }
-//     return result;
-// });
-
-        this.on('READ', Orders, async (req, next) => {
-            console.log('log: order');
-            const url = req._.req.url;
-            let containsInteractions = url.toLowerCase().includes('interactions');
-            
-            console.log(url);
-            console.log('contains: ', containsInteractions);
-            console.log('url\tfullurl');
-            console.log(req.target.name);
-            
-            if (req?.params.length == 2) {
-                const order = await next();
-                const orderID = order.ID;
-                
-                console.log('order', order, 'orderID', orderID);
-                
-                const items = await SELECT.from(OrderItems).where({ parent_ID: orderID });
-                console.log(items);
-                
-                let total = 0;
-                for (const item of items) {
-                    total += item.priceAtOrder * item.quantity;
-                }
-                
-                console.log('total', total);
-                order.totalAmount = total;
-            } else {
-                return next();
-            }
         });
-
-// this.on('READ', Vendors, async (req, next) => {
-
-//         if (!req.params || req.params.length === 0 || !req.params[0].ID) {
-//             return await next(); 
-//         }
-
-//         const vendorID = req.params[0].ID;
-        
-//         const vendor = await next(); 
-//         if (!vendor) return vendor; 
-
-//         const products = await SELECT.from(Products).where({ vendor_ID: vendorID });
-        
-//         let productIDs = [];
-//         for (const prod of products) {
-//             productIDs.push(prod.ID);
-//         }
-
-//         let total = 0;
-//         if (productIDs.length > 0) {
-//             const items = await SELECT.from(OrderItems).where({ product_ID: { 'in': productIDs } });
+        // this.on('READ', Customers, async (req, next) => {
+        //     console.log('customer req', req);
             
-//             for (const item of items) {
-//                 total += (item.priceAtOrder * item.quantity);
-//             }
-//         }
+        //     if (req?.params[0]?.ID) {
+        //         let ids = [];
+        //         let total = 0;
+        //         let ratingSum = 0;
+        //         const customerID = req?.params[0]?.ID;
+                
+        //         console.log(customerID);
+        //         console.log('obj page');
+                
+        //         // Get the standard customer data from the database
+        //         const customer = await next();
+        //         customer.averageRating = 5.0;
+                
+        //         const orders = await SELECT.from(Orders).where({ customer_ID: customerID });
+        //         for (const order of orders) {
+        //             ids.push(order.ID);
+        //         }
+                
+        //         console.log('ids', ids);
+                
+        //         if (ids.length > 0) {
+        //             const items = await SELECT.from(OrderItems).where({ parent_ID: { in: ids } });
+        //             console.log(items);
+                    
+        //             for (const item of items) {
+        //                 total += item.priceAtOrder * item.quantity;
+        //                 ratingSum += item.rating;
+        //             }
+                    
+        //             customer.totalSpend = total;
+        //             customer.averageRating = ratingSum / items.length;
+        //         }
+        //     } else {
+        //         return next();
+        //     }
+        // });
 
-//         vendor.totalAmount = total;
 
-//         return vendor;
-//     });
+this.before('SAVE', 'Products', async (req) => {
+    // 1. Double check the user is logged in as a Vendor
+    console.log('draft activcation ')
+    if (req.user.is('Vendor')) {
+        
+        // 2. Read the draft data currently being activated
+        const draftData = req.data;
+        
+        // 3. Inject their vendorId session attribute into the activation payload
+        draftData.vendor_ID = req.user.attr.vendorId;
+        
+        console.log(`🔒 Draft Activation: Bound Vendor ID ${draftData.vendor_ID} permanently to active product.`);
+    }
+});
+    this.after('READ', 'Orders', async (results) => {
+
+    const orders = Array.isArray(results) ? results : [results];
+
+    // Loop through every order Fiori asked for
+    for (const order of orders) {
+        
+        // 1. Fetch the items belonging to this specific order from the database
+        // (Make sure to use your actual database table name and foreign key here)
+        const items = await SELECT.from('CRMService.OrderItems').where({ parent_ID: order.ID });
+
+        // 2. Calculate the math (Quantity * Price)
+        let calculatedTotal = 0;
+        for (const item of items) {
+            calculatedTotal += (item.quantity * item.priceAtOrder);
+        }
+
+        // 3. Attach it to your virtual field!
+        order.totalAmount = calculatedTotal;
+    }
+});
+
 
 // FIXED: Using 'after' lets CAP fetch the database rows automatically first!
     this.after('READ', 'Vendors', async (results, req) => {
@@ -244,5 +213,52 @@ module.exports = class CRMService extends cds.ApplicationService {
             await UPDATE(Interactions).set({currentOwner_code: 'VENDOR_ADMIN'}).where({ ID: interactionID });
             req.notify("Interaction has been escalated to vendor.");
         });
+
+        this.on('makeVisibleToVendor', InteractionLogs, async (req) => {
+            console.log('make visible to vendor')
+            if (!req.user.is('CRMAdmin')) {
+                return req.reject(403, "Only CRM Admins can make interaction logs visible to vendors.");
+            }
+            console.log('params:' ,req.params)
+            await UPDATE(InteractionLogs).set({ isPrivate: false }).where({ ID: req.params[2].ID });
+            req.notify("Interaction log is now visible to vendor.");
+        })
+        this.on('createLog',Interactions,async (req) => {
+            console.log(req.user)
+            const { text } = req.data;
+            const interactionID = req.params[1].ID;
+            console.log('Creating log for interaction', interactionID, 'with text:', text);
+            if (req.user.is('Vendor')) {
+                console.log('Vendor creating log, setting isPrivate to false');
+                await INSERT.into(InteractionLogs).entries({
+                text: text,
+                parent_ID: interactionID,
+                isPrivate: false
+            });
+            }else{
+                console.log('CRMAdmin creating log, setting isPrivate to true');
+                await INSERT.into(InteractionLogs).entries({
+                    text: text,
+                    parent_ID: interactionID,
+                    isPrivate: true
+                    
+                });
+            }
+            
+            req.notify("Log created successfully.");
+        });
+        this.before('NEW', 'InteractionLogs', async (req) => {
+            if (req.user.is('Vendor')) {
+                req.data.isPrivate = false;
+            }
+        });
+
+        this.before('CREATE', 'InteractionLogs', async (req) => {
+            if (req.user.is('Vendor')) {
+                req.data.isPrivate = false;
+            }
+        });
+        
     }
+    
 }

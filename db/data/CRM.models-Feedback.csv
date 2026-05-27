@@ -1,4 +1,4 @@
 ID,customer_ID,interaction_ID,order_ID,orderItem_ID,feedbackType,rating,comment
-91a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6,a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d,123e4567-e89b-12d3-a456-426614174000,,,INTERACTION,5,"Great service. Highly recommend. Issue was resolved quickly and professionally."
-92b3c4d5-e6f7-a8b9-c0d1-e2f3a4b5c6d7,a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d,,a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d,,SHOP_ORDER,4,"Delivery was in time. But the product packaging could be improved."
-93c4d5e6-f7a8-b9c0-d1e2-f3a4b5c6d7e8,a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d,,,91a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6,VENDOR_ITEM,3,"Average experience, nothing exceptional."
+91a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6,1a9e8315-f455-4fd4-a323-ae4a3fb9acba,123e4567-e89b-12d3-a456-426614174000,,,INTERACTION,5,"Great service. Highly recommend. Issue was resolved quickly and professionally."
+92b3c4d5-e6f7-a8b9-c0d1-e2f3a4b5c6d7,1a9e8315-f455-4fd4-a323-ae4a3fb9acba,,a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d,,SHOP_ORDER,4,"Delivery was in time. But the product packaging could be improved."
+93c4d5e6-f7a8-b9c0-d1e2-f3a4b5c6d7e8,1a9e8315-f455-4fd4-a323-ae4a3fb9acba,,,91a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6,VENDOR_ITEM,3,"Average experience, nothing exceptional."

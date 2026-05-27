@@ -45,7 +45,12 @@ annotate service.Vendors with @(
     }
 );
 
-
+annotate service.OrderItems with {
+    product_content @(
+        Core.MediaType : product_mediaType,  // 👈 Fixes the missing element error!
+        Core.ContentDisposition.Filename : product_fileName
+    );
+};
 annotate service.Interactions with @(
     // UI.HeaderInfo : {
     //     TypeName       : 'Assigned Ticket',

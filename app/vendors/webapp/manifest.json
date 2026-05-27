@@ -92,6 +92,16 @@
           "pattern": "Vendors({key}):?query:",
           "name": "VendorsObjectPage",
           "target": "VendorsObjectPage"
+        },
+        {
+          "name": "Vendors_interactionsObjectPage",
+          "pattern": "Vendors({key})/interactions({interactionsKey}):?query:",
+          "target": "Vendors_interactionsObjectPage"
+        },
+        {
+          "name": "Vendors_productsObjectPage",
+          "pattern": "Vendors({key})/products({productsKey}):?query:",
+          "target": "Vendors_productsObjectPage"
         }
       ],
       "targets": {
@@ -116,7 +126,8 @@
                     "type": "ResponsiveTable"
                   }
                 }
-              }
+              },
+              "initialLoad": "Enabled"
             }
           }
         },
@@ -127,7 +138,41 @@
           "options": {
             "settings": {
               "editableHeaderContent": false,
-              "contextPath": "/Vendors"
+              "contextPath": "/Vendors",
+              "navigation": {
+                "interactions": {
+                  "detail": {
+                    "route": "Vendors_interactionsObjectPage"
+                  }
+                },
+                "products": {
+                  "detail": {
+                    "route": "Vendors_productsObjectPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Vendors_interactionsObjectPage": {
+          "type": "Component",
+          "id": "Vendors_interactionsObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "navigation": {},
+              "contextPath": "/Vendors/interactions"
+            }
+          }
+        },
+        "Vendors_productsObjectPage": {
+          "type": "Component",
+          "id": "Vendors_productsObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "navigation": {},
+              "contextPath": "/Vendors/products"
             }
           }
         }

@@ -1,0 +1,2 @@
+ID,parent_ID,text,isPrivate,createdBy
+123e4567-e89b-12d3-a456-426614174001,123e4567-e89b-12d3-a456-426614174000,"Customer called to report an issue with the order. They mentioned that the package was damaged upon arrival.",true,Alice

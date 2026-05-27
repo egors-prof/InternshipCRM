@@ -2,7 +2,6 @@ namespace CRM.models;
 using { 
     managed, 
     cuid, 
-    Currency ,
     sap.common.CodeList,
     sap,
 } from '@sap/cds/common';
@@ -11,7 +10,7 @@ entity Customer : managed, cuid {
     lastName       : String(20);
     email          : String @assert.format: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
     
-    totalSpend     : Decimal(15,2);
+    virtual totalSpend     : Decimal(15,2);
     virtual averageRating : Integer;
     customerStatus : Association to CustomerStatuses; 
     orders: Association to   many Order on orders.customer = $self;
@@ -23,7 +22,7 @@ entity CustomerStatuses : CodeList {
 }
 
 
-
+@readonly
 entity Interaction : cuid, managed {
     caseNumber    : String(10);
     customer      : Association to Customer;
@@ -40,16 +39,16 @@ entity Interaction : cuid, managed {
     summary       : String(1000); 
 
     logs    : Composition of many InteractionLogs on logs.parent = $self;
-    
+   
+
     resolution    : String(1000);
     reaction      : Association to one Feedback on reaction.interaction = $self;
 }
 
 
 entity InteractionLogs : cuid, managed {
-    parent    : Association to Interaction;
+    parent    : Association to one Interaction;
     text      : String(1000);
-    author    : String;
     isPrivate : Boolean default true;
 }
 
@@ -78,7 +77,7 @@ entity InteractionTypes : CodeList {
 
 entity Order : managed, cuid {
     orderNumber  : String(10);
-    totalAmount  : Decimal(10,2);
+    virtual totalAmount : Decimal(15,2);
     status       : Association to Statuses;
     customer     : Association to Customer; 
     
@@ -132,15 +131,16 @@ entity Product : managed, cuid {
     mainCategory : Association to Category ;
     price        : Decimal(10,2);
     stock        : Integer;
-    currency     : Currency;
     timesOrdered : Integer;
     vendor       : Association to Vendors;
     
 
     @Core.MediaType: mediaType
+    @Core.ContentDisposition.Filename: fileName
     content      : LargeBinary;
     @Core.IsMediaType: true
     mediaType    : String;
+    fileName     : String(500);
 
    
 }
@@ -178,5 +178,5 @@ entity Vendors :cuid, managed {
   address   : String;
   isActive  : Boolean default true;
   products  : Association to many Product on products.vendor = $self;
-  interactions : Association to many Interaction on interactions.vendor = $self;
+  interactions : Composition of many Interaction on interactions.vendor = $self;
 }

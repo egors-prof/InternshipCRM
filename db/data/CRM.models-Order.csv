@@ -1,2 +1,2 @@
-ID,orderNumber,totalAmount,status_code,customer_ID
-a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d,ORD-1001,149.49,COMPLETED,1a9e8315-f455-4fd4-a323-ae4a3fb9acba
+ID,orderNumber,status_code,customer_ID
+a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d,ORD-1001,COMPLETED,1a9e8315-f455-4fd4-a323-ae4a3fb9acba
