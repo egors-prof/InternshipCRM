@@ -1,10 +1,9 @@
 using { CRM.models as my } from '../db/schema';
 
-service CRMService @(requires: 'authenticated-user') {
+service CRMService  {
     @odata.draft.enabled
     entity Customers as projection on my.Customer;
     
-    // OPTIMIZED: Uses an explicit subquery check to avoid multi-array navigation issues
     annotate Customers with @restrict: [
         { grant: '*', to: 'CRMAdmin' },
         { 
@@ -15,21 +14,23 @@ service CRMService @(requires: 'authenticated-user') {
     ];
     
 
-    
+    @odata.draft.enabled
     entity Orders as projection on my.Order {
         *,
         customer : redirected to Customers
     } actions {
         action refundOrder() returns Orders;
     }
-    entity Interactions as projection on my.Interaction {
-        *,
-        customer : redirected to Customers,
-        reaction : redirected to Feedbacks
-    }actions {
-        action escalateToVendor() returns Interactions;
-        action createLog(text :String) returns InteractionLogs;
-    }
+annotate Orders with @restrict: [
+    { grant: '*', to: 'CRMAdmin' },
+    { 
+        grant: 'READ', 
+        to: 'Vendor', 
+        where: 'exists items[product.vendor.ID = $user.vendorId]' 
+    },
+    { grant: ['READ','CREATE'], to: 'Customer',where:'customer_ID=$user.customerId ' } 
+];
+
 
 entity ProductReviews as select from my.Feedback {
     key ID,
@@ -39,25 +40,24 @@ entity ProductReviews as select from my.Feedback {
 };
 
 
-    // OPTIMIZED: Cleans up deep array validation paths
+
+    entity Interactions as projection on my.Interaction {
+        *,
+        customer     : redirected to Customers,
+        reaction     : redirected to Feedbacks,
+        logs         : redirected to InteractionLogs // 🟢 ADD THIS LINE
+    } actions {
+        action escalateToVendor() returns Interactions;
+        action createLog(text : String) returns InteractionLogs;
+    };
     
     annotate Interactions with @restrict: [
-    { grant: '*', to: 'CRMAdmin' },
-    { grant: '*', to: 'Vendor' },
-    // This handles DATA access (Viewing/Modifying the Interaction itself)
-    // { 
-    //     grant: ['READ', 'UPDATE', 'CREATE'], 
-    //     to: 'Vendor', 
-    //     where: 'exists customer.orders.items[product.vendor.ID = $user.vendorId] and currentOwner_code = ''VENDOR_ADMIN''' 
-    // },
-    
-    // This handles ACTION access (Allows them to invoke the createLog button regardless of data state)
-    {
-        grant: ['execute'],
-        to: 'Vendor',
-        named: 'createLog'
-    }
-];
+        { grant: ['READ', 'CREATE', 'UPDATE', 'DELETE'], to: 'CRMAdmin' },
+        { grant: ['READ', 'CREATE', 'UPDATE'], to: 'Vendor' },
+        { grant: ['READ', 'CREATE'], to: 'Customer', where: 'customer_ID = $user.customerId' },
+        { grant: ['execute'], to: 'Vendor', named: 'createLog' }
+    ];
+
     entity InteractionLogs as projection on my.InteractionLogs{
         *
     }actions{
@@ -86,25 +86,29 @@ entity ProductReviews as select from my.Feedback {
         *,
         reviews : Association to many ProductReviews on reviews.product_ID = $self.ID
     }
-    
     annotate Products with @restrict: [
         { grant: '*', to: 'CRMAdmin' }, 
-        
-        { grant: '*', to: 'Vendor', where: 'vendor_ID = $user.vendorId' },
-        
-        
+        { grant: '*', to: 'Vendor', where: 'vendor_ID = $user.vendorId' }
     ];
     @odata.draft.enabled
     entity MainCategories as projection on my.Category;
     entity SubCategories as projection on my.SubCategory;
     entity ProductGroups as projection on my.ProductGroup;
 
-    @odata.draft.enabled
+    entity Wishlist as projection on my.Wishlists;
+
     @cds.redirection.target
     entity Feedbacks as projection on my.Feedback {
         *,
-        customer : redirected to Customers
+        customer : redirected to Customers,
+        order       : redirected to Orders,
+        orderItem   : redirected to OrderItems,
+        interaction : redirected to Interactions
     };
+    annotate Feedbacks with @restrict: [
+        { grant: '*', to: 'CRMAdmin' },
+        { grant: ['READ', 'CREATE'], to: 'Customer' }
+    ];
 
     @readonly entity Statuses as projection on my.Statuses;
     @readonly entity CustomerStatuses as projection on my.CustomerStatuses;
@@ -115,11 +119,19 @@ entity ProductReviews as select from my.Feedback {
                                             Core.ContentDisposition.Type: 'inline',
                                             UI.IsImage : true),  
         product.mediaType as product_mediaType, 
-        product.fileName  as product_fileName
+        product.fileName  as product_fileName,
+        product.vendor.ID as product_vendor_ID
     };
-    // @Core.MediaType : mediaType
-    //           @Core.ContentDisposition.Type: 'inline'
-    //           @UI.IsImage : true;
+    annotate OrderItems with @restrict: [
+        { grant: '*', to: 'CRMAdmin' },
+        { 
+            grant: ['READ'], 
+            to: 'Vendor', 
+            where: 'product.vendor_ID = $user.vendorId' 
+        },
+        { grant: ['READ','CREATE'], to: 'Customer',where:'parent.customer_ID=$user.customerId' } 
+    ];
+
     entity Roles as projection on my.Roles;
     @odata.draft.enabled
     entity Vendors as projection on my.Vendors actions {

@@ -21,3 +21,4 @@ mta_archives/
 *.db
 *.db-shm
 *.db-wal
+@cds-models

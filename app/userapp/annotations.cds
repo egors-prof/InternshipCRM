@@ -257,6 +257,7 @@ annotate service.OrderItems with {
 annotate service.OrderItems with @(
     UI.LineItem : [
         { $Type : 'UI.DataField', Value : product_content, Label : 'Preview', @UI.Importance : #High},
+        { $Type : 'UI.DataField',Label : 'Product',Value : product.title,@UI.Importance : #High},
         { $Type : 'UI.DataField', Value : quantity ,Label:'Quantity',@UI.Importance : #High},
         { $Type : 'UI.DataField', Value : product_content,Label:'Product Content',@UI.Importance : #High },
         { $Type : 'UI.DataField', Value : priceAtOrder,Label:'Price At Order',@UI.Importance : #High }
@@ -277,11 +278,11 @@ annotate service.OrderItems with {
         IsImage:true
     );
 };
-annotate service.OrderItems with @Common.SideEffects : {
-    $Type : 'Common.SideEffectType',
-    SourceProperties : [ product_ID ],
-    TargetProperties : [ priceAtOrder ] 
-};
+// annotate service.OrderItems with @Common.SideEffects : {
+//     $Type : 'Common.SideEffectType',
+//     SourceProperties : [ product_ID ],
+//     TargetProperties : [ priceAtOrder ] 
+// };
 // annotate service.OrderItems with {
 //     product @(
 //         Common.ValueList : {
@@ -323,7 +324,28 @@ annotate service.OrderItems with @Common.SideEffects : {
 //     );
 // }
 
-
+annotate service.Interactions with {
+    priority @(
+        Common.ValueList : {
+            $Type : 'Common.ValueListType',
+            CollectionPath : 'Priorities',
+            Parameters : [
+                {
+                    $Type : 'Common.ValueListParameterInOut',
+                    LocalDataProperty : priority_code,
+                    ValueListProperty : 'code'
+                },
+                {
+                    $Type : 'Common.ValueListParameterDisplayOnly',
+                    // 🟢 FIXED: Lowercase 'name' to match your SAP CDS CodeList master column property
+                    ValueListProperty : 'name' 
+                }
+            ]
+        },
+        Common.Text : priority.name,
+        Common.TextArrangement : #TextOnly
+    );
+};
 annotate service.Interactions with @(
     UI.FieldGroup #Interactions : {
         $Type : 'UI.FieldGroupType',
@@ -339,11 +361,6 @@ annotate service.Interactions with @(
                 $Type : 'UI.DataField',
                 Label : 'Title',
                 Value : title,
-            },
-            {
-                $Type : 'UI.DataField',
-                Label : `Vendor's Name`,
-                Value : vendor.name,
             },
             {
                 $Type : 'UI.DataField',
@@ -424,7 +441,7 @@ annotate service.Interactions with @(
             {
                 $Type : 'UI.DataField',
                 Label : 'Priority',
-                Value : priority.name,
+                Value : priority_code,
             },
             {
                 $Type : 'UI.DataField',

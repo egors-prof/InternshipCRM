@@ -1,0 +1,39 @@
+{
+  "welcomeFile": "/index.html",
+  "routes": [
+    {
+      "source": "^/index.html$",
+      "localDir": "resources",
+      "authenticationType": "none"
+    },
+    {
+      "source": "^/srv-api/Products(.*)$",
+      "destination": "srv-api",
+      "authenticationType": "none",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "source": "^/srv-api/Products(.*)$",
+      "destination": "srv-api",
+      "authenticationType": "xsuaa",
+      "methods": [
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+      ]
+    },
+    {
+      "source": "^/srv-api/(.*)$",
+      "destination": "srv-api",
+      "authenticationType": "xsuaa"
+    },
+    {
+      "source": "^/(.*)$",
+      "localDir": "resources",
+      "authenticationType": "none"
+    }
+  ]
+}

@@ -22,13 +22,15 @@ entity CustomerStatuses : CodeList {
 }
 
 
-@readonly
+
 entity Interaction : cuid, managed {
-    caseNumber    : String(10);
+    caseNumber    : String(30);
     customer      : Association to Customer;
     vendor        : Association to Vendors;
     order         : Association to Order;
     
+    orderItem     : Association to OrderItems;
+
     type          : Association to InteractionTypes; 
     priority      : Association to Priorities;       
     status        : Association to InteractionStatus; 
@@ -39,8 +41,6 @@ entity Interaction : cuid, managed {
     summary       : String(1000); 
 
     logs    : Composition of many InteractionLogs on logs.parent = $self;
-   
-
     resolution    : String(1000);
     reaction      : Association to one Feedback on reaction.interaction = $self;
 }
@@ -76,7 +76,7 @@ entity InteractionTypes : CodeList {
 
 
 entity Order : managed, cuid {
-    orderNumber  : String(10);
+    orderNumber  : String(30);
     virtual totalAmount : Decimal(15,2);
     status       : Association to Statuses;
     customer     : Association to Customer; 
@@ -110,7 +110,6 @@ entity Feedback : cuid, managed {
     order        : Association to Order;
     orderItem    : Association to OrderItems;
     
-    
     feedbackType : String(20) enum {
         INTERACTION = 'INTERACTION'; 
         SHOP_ORDER  = 'SHOP_ORDER';  
@@ -118,9 +117,16 @@ entity Feedback : cuid, managed {
     };
 
     
-    @assert.format : '^[1-5]$' 
+    @assert.range : [1,5]
     rating       : Integer; 
     comment      : String(1000);
+}
+
+
+
+entity Wishlists :managed,cuid {
+    customer_ID     : String(36); 
+    product         : Association to Product;
 }
 
 entity Product : managed, cuid {
@@ -178,5 +184,5 @@ entity Vendors :cuid, managed {
   address   : String;
   isActive  : Boolean default true;
   products  : Association to many Product on products.vendor = $self;
-  interactions : Composition of many Interaction on interactions.vendor = $self;
+  interactions : Association to many Interaction on interactions.vendor = $self;
 }

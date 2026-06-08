@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Unified Portal</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f3f4f5; 
+            color: #32363a; 
+            margin: 0; 
+            padding: 40px 20px; 
+            text-align: center;
+        }
+        
+        h1 { color: #1c2d42; margin-bottom: 5px; }
+        p { color: #65778b; margin-top: 0; margin-bottom: 30px; }
+
+        .container { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 25px; 
+            max-width: 900px; 
+            margin: 0 auto; 
+        }
+
+        .tile { 
+            display: none; /* JavaScript unhides these based on roles */
+            background: #ffffff; 
+            padding: 30px; 
+            border-radius: 8px; 
+            text-decoration: none; 
+            color: inherit; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
+            transition: all 0.2s ease; 
+            border-left: 6px solid #ccc; 
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .tile:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
+        }
+
+        #customersTile { border-left-color: #0a6ed1; }
+        #vendorsTile { border-left-color: #d32f2f; }
+        #productsTile { border-left-color: #2e7d32; }
+
+        .tile h3 { margin: 0 0 10px 0; font-size: 1.3rem; color: #1c2d42; }
+        .tile p { margin: 0; color: #526475; font-size: 0.95rem; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Unified Portal</h1>
+    <p>Please select a workspace to begin.</p>
+
+    <div class="container">
+        <a id="customersTile" href="/userapp/index.html" class="tile">
+            <h3>CRM Workspace</h3>
+            <p>Manage Customers</p>
+        </a>
+
+        <a id="vendorsTile" href="/vendors/index.html" class="tile">
+            <h3>Vendor Admin</h3>
+            <p>Manage Vendors</p>
+        </a>
+
+        <a id="productsTile" href="/products/index.html" class="tile">
+            <h3>Product Catalog</h3>
+            <p>Manage Products</p>
+        </a>
+    </div>
+
+    <script>
+        // Prepend /srv-api so Approuter routes this call directly to your Node.js CAP service
+        fetch('/srv-api/odata/v4/crm/getMyRoles()')
+            .then(response => {
+                if (!response.ok) throw new Error("Network status error: " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                // Access the inner OData V4 value block object
+                const roles = data.value || data;
+                console.log("User Roles loaded:", roles);
+
+                // Check Admin authorization rules
+                if (roles.isCRMAdmin) {
+                    document.getElementById('customersTile').style.display = 'flex';
+                    document.getElementById('vendorsTile').style.display = 'flex';
+                } 
+                // Check Vendor authorization rules
+                else if (roles.isVendor) {
+                    document.getElementById('customersTile').style.display = 'flex';
+                    document.getElementById('productsTile').style.display = 'flex';
+                }
+            })
+            .catch(err => {
+                console.error("Could not fetch user roles securely.", err);
+            });
+    </script>
+</body>
+</html>

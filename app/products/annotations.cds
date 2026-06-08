@@ -145,19 +145,19 @@ annotate crm.ProductGroups with {
     description @Common.Label : 'Description';
 };
 
-annotate crm.Products with @(
-    // 1. When Department (mainCategory) changes, clear Category and Segment
-    Common.SideEffects #DepartmentChanged : {
-        SourceProperties : [ mainCategory_ID ],
-        TargetProperties : [ subCategory_ID, category_ID ] 
-    },
+// annotate crm.Products with @(
+//     // 1. When Department (mainCategory) changes, clear Category and Segment
+//     Common.SideEffects #DepartmentChanged : {
+//         SourceProperties : [ mainCategory_ID ],
+//         TargetProperties : [ subCategory_ID, category_ID ] 
+//     },
     
-    // 2. When Category (subCategory) changes, clear Segment
-    Common.SideEffects #CategoryChanged : {
-        SourceProperties : [ subCategory_ID ],
-        TargetProperties : [ category_ID ]
-    }
-);
+//     // 2. When Category (subCategory) changes, clear Segment
+//     Common.SideEffects #CategoryChanged : {
+//         SourceProperties : [ subCategory_ID ],
+//         TargetProperties : [ category_ID ]
+//     }
+// );
 annotate crm.Products with {
     
     // Target mainCategory_ID explicitly!

@@ -4,16 +4,32 @@ module.exports = class CRMService extends cds.ApplicationService {
     async init() {
        
         await super.init();
-        const { Customers, Orders, OrderItems,Vendors,Products,InteractionLogs,Interactions,Feedback} = this.entities;
+        const { Customers, Orders, OrderItems,Vendors,Products,InteractionLogs,Interactions,Feedbacks} = this.entities;
 
-        this.on('getMyRoles', (req) => {
-            console.log(req.user.is('admin'));
-            console.log(req.user.is('CRMAdmin'));
+    
+        
+        this.on('getMyRoles', async (req) => {
+            console.log("🔒 Checking authorization attributes...");
+            console.log('Is Admin:', req.user.is('admin'));
+            console.log('Is CRMAdmin:', req.user.is('CRMAdmin'));
+
+            let oCustomerDetails = null;
+            const sCustomerId = req.user?.attr?.customerId || null;
+            
+
+            if (sCustomerId) {
+                console.log(`👤 Extracting customer database row data for ID: [${sCustomerId}]`);
+                oCustomerDetails = await SELECT.one.from(Customers).where({ ID: sCustomerId });
+            }
 
             return {
                 isCRMAdmin: req.user.is('CRMAdmin'),
                 isVendor: req.user.is('Vendor'),
-                username: req.user.id
+                username: req.user.id,
+                id: sCustomerId,
+                
+                
+                customerProfile: oCustomerDetails 
             };
         });
 
@@ -32,19 +48,21 @@ module.exports = class CRMService extends cds.ApplicationService {
             }
         });
 
-        this.after('READ','Customers', async (results) => {
+        this.after('READ','Customers', async (results,req) => {
             console.log(results);
             const customers = Array.isArray(results) ? results : [results];
         
             for (const customer of customers) {
                 const feedbacks = await SELECT.from('Feedback').where({ customer_ID: customer.ID });
-                const orders = await SELECT.from('Order').where({ customer_ID: customer.ID });
+                const orders = await SELECT.from('Order').where({ customer_ID: customer.ID,});
                 const orderIds = orders.map(order => order.ID);
+
                 console.log('orders:',orders)
                 
                 let totalSpend = 0;
                 if (orderIds.length > 0) {
                     const items = await SELECT.from('OrderItems').where({ parent_ID: { 'in': orderIds } });
+                    console.log('items:',items)
                     for (const item of items) {
                         totalSpend += (item.quantity * item.priceAtOrder);
                     }
@@ -55,51 +73,101 @@ module.exports = class CRMService extends cds.ApplicationService {
                 }
                 
                 console.log('rating sum',ratingSum, 'feedbacks length', feedbacks.length, 'average', ratingSum/feedbacks.length);
+                console.log('total spend', totalSpend);
                 customer.averageRating =feedbacks.length > 0 ? ratingSum/feedbacks.length : 0;
                 customer.totalSpend = totalSpend;
                 
         }
         });
-        // this.on('READ', Customers, async (req, next) => {
-        //     console.log('customer req', req);
-            
-        //     if (req?.params[0]?.ID) {
-        //         let ids = [];
-        //         let total = 0;
-        //         let ratingSum = 0;
-        //         const customerID = req?.params[0]?.ID;
-                
-        //         console.log(customerID);
-        //         console.log('obj page');
-                
-        //         // Get the standard customer data from the database
-        //         const customer = await next();
-        //         customer.averageRating = 5.0;
-                
-        //         const orders = await SELECT.from(Orders).where({ customer_ID: customerID });
-        //         for (const order of orders) {
-        //             ids.push(order.ID);
-        //         }
-                
-        //         console.log('ids', ids);
-                
-        //         if (ids.length > 0) {
-        //             const items = await SELECT.from(OrderItems).where({ parent_ID: { in: ids } });
-        //             console.log(items);
-                    
-        //             for (const item of items) {
-        //                 total += item.priceAtOrder * item.quantity;
-        //                 ratingSum += item.rating;
-        //             }
-                    
-        //             customer.totalSpend = total;
-        //             customer.averageRating = ratingSum / items.length;
-        //         }
-        //     } else {
-        //         return next();
-        //     }
-        // });
+      
+this.before('SAVE', 'Orders', async (req) => {
+    const oOrderData = req.data;
+    console.log(`🔒 Validating Order Activation for ID: ${oOrderData.ID}`);
 
+    // 1. Safety Guard: Verify the order contains line items
+    if (!oOrderData.items || oOrderData.items.length === 0) {
+        return req.error(400, "Cannot activate an order with an empty shopping cart.");
+    }
+
+    let nFinalValidatedTotal = 0;
+
+    // 2. Loop through the items to protect warehouse stock and confirm prices
+    for (const item of oOrderData.items) {
+        // Read the true, immutable product details directly from the main master table
+        const dbProduct = await SELECT.one.from('CRMService.Products').where({ ID: item.product_ID });
+        
+        if (!dbProduct) {
+            return req.error(404, `Product validation error: Item ID ${item.product_ID} no longer exists.`);
+        }
+
+        // ⚠️ WAREHOUSE STOCK GUARDRAIL
+        if (item.quantity > dbProduct.stock) {
+            return req.error(400, `Insufficient stock for '${dbProduct.title}'. Available in warehouse: ${dbProduct.stock}, requested: ${item.quantity}`);
+        }
+
+        // ⚠️ FINANCIAL FRAUD GUARDRAIL
+        // Snap the official database catalog price onto the ledger line item.
+        // This completely prevents users from manipulating prices via browser tools!
+        item.priceAtOrder = dbProduct.price;
+        
+        nFinalValidatedTotal += (dbProduct.price * item.quantity);
+
+        // 3. Deduct the purchased quantity from the master inventory stock level safely
+        const nNewStockLevel = dbProduct.stock - item.quantity;
+        const nNewTimesOrdered=dbProduct.timesOrdered+item.quantity;
+        await UPDATE('CRMService.Products')
+            .set({ stock: nNewStockLevel,timesOrdered:nNewTimesOrdered })
+            .where({ ID: item.product_ID });
+            
+        console.log(`📦 Inventory Updated: '${dbProduct.title}' stock reduced to ${nNewStockLevel}`);
+    }
+
+    // Lock in the mathematically sound total directly onto the parent Order document header
+    oOrderData.totalAmount = nFinalValidatedTotal;
+    
+    console.log(`✅ Order validation successful. Moving transactions safely to main tables!`);
+});
+
+// ================================================================= */
+        // OPTIMIZED: Context-Aware Feedback Creation Validation Engine       */
+        // ================================================================= */
+        this.before('CREATE', Feedbacks, async (req) => {
+            console.log('--> Backend feedback creation handler triggered!');
+            if (req.target && req.target.name !== 'CRMService.Feedbacks') {
+                console.log(`⏭️ Side-effect routing detected from [${req.target.name}]. Skipping review checks.`);
+                return;
+            }
+
+            const data = req.data;
+            let targetCount = 0;
+            console.log(data);
+
+            // 1. Evaluate context bindings and map classification type flags cleanly
+            if (data.interaction_ID) {
+                data.feedbackType = 'INTERACTION';
+                targetCount++;
+            }
+            if (data.order_ID) {
+                data.feedbackType = 'SHOP_ORDER';
+                targetCount++;
+            }
+            if (data.orderItem_ID) {
+                data.feedbackType = 'VENDOR_ITEM';
+                targetCount++;
+            }
+
+            // 2. Multi-Context Mutual Exclusivity Guardrails
+            if (targetCount === 0) {
+                return req.error(400, "Invalid payload context. Feedback must link exclusively to an Interaction, Shop Order, or Vendor Item.");
+            }
+            
+            if (targetCount > 1) {
+                return req.error(400, "Ambiguous payload context. Feedback cannot link to multiple target entities simultaneously.");
+            }
+
+           
+            
+        });
 
 this.before('SAVE', 'Products', async (req) => {
     // 1. Double check the user is logged in as a Vendor
@@ -115,17 +183,36 @@ this.before('SAVE', 'Products', async (req) => {
         console.log(`🔒 Draft Activation: Bound Vendor ID ${draftData.vendor_ID} permanently to active product.`);
     }
 });
-    this.after('READ', 'Orders', async (results) => {
-
+    this.after('READ', 'Orders', async (results,req) => {
+        
     const orders = Array.isArray(results) ? results : [results];
+    console.log(orders)
+    console.log('user',req.user);
+    let items = [] ;
+    
 
     // Loop through every order Fiori asked for
     for (const order of orders) {
+        if(req.user.is('CRMAdmin')){
+            console.log('CRMAdmin');
+            items = await SELECT.from('CRMService.OrderItems').where({ 
+                                        parent_ID: order.ID
+                                        }); 
+                
+        }else if (req.user.is('Customer')){
+            console.log("Customer");
+            items = await SELECT.from('CRMService.OrderItems').where({ 
+                                        parent_ID: order.ID, 
+                                        'parent.customer_ID': req.user.attr.customerId });
+        }else{
+            console.log('else');
+            items = await SELECT.from('CRMService.OrderItems').where({ 
+                                        parent_ID: order.ID, 
+                                        'product.vendor_ID': req.user.attr.vendorId });
+        }
+       
+        console.log('items',items);
         
-        // 1. Fetch the items belonging to this specific order from the database
-        // (Make sure to use your actual database table name and foreign key here)
-        const items = await SELECT.from('CRMService.OrderItems').where({ parent_ID: order.ID });
-
         // 2. Calculate the math (Quantity * Price)
         let calculatedTotal = 0;
         for (const item of items) {
@@ -135,6 +222,7 @@ this.before('SAVE', 'Products', async (req) => {
         // 3. Attach it to your virtual field!
         order.totalAmount = calculatedTotal;
     }
+    console.log(orders);
 });
 
 
