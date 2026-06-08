@@ -139,7 +139,6 @@ entity Product : managed, cuid {
     stock        : Integer;
     timesOrdered : Integer;
     vendor       : Association to Vendors;
-    
 
     @Core.MediaType: mediaType
     @Core.ContentDisposition.Filename: fileName
@@ -148,10 +147,29 @@ entity Product : managed, cuid {
     mediaType    : String;
     fileName     : String(500);
 
+    images        : Composition of many ProductImage on images.product = $self;
+    
+
+    // @Core.MediaType: mediaType
+    // @Core.ContentDisposition.Filename: fileName
+    // content      : LargeBinary;
+    // @Core.IsMediaType: true
+    // mediaType    : String;
+    // fileName     : String(500);
+
    
 }
 
-
+entity ProductImage : managed , cuid {
+    product      : Association to Product;
+    isMain       : Boolean default false;
+    @Core.MediaType: mediaType
+    @Core.ContentDisposition.Filename: fileName
+    content      : LargeBinary;
+    @Core.IsMediaType: true
+    mediaType    : String;
+    fileName     : String(500);
+}
 
 
 entity Category : managed, cuid {

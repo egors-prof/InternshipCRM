@@ -81,6 +81,60 @@ module.exports = class CRMService extends cds.ApplicationService {
 });
 
 
+ this.after('READ', 'Orders', async (results, req) => {
+    // 🟢 SAFETY CHECK 1: If there are no results, exit immediately to protect the draft state
+    if (!results) return;
+
+    const orders = Array.isArray(results) ? results : [results];
+    console.log("Orders received in hook:", orders);
+    console.log('User profile:', req.user);
+    
+    let items = [];
+
+    // Loop through every order requested
+    for (const order of orders) {
+        // 🟢 SAFETY CHECK 2: Skip empty, malformed, or half-baked draft objects safely
+        if (!order || !order.ID) continue;
+
+        if (req.user.is('CRMAdmin')) {
+            console.log('CRMAdmin');
+            items = await SELECT.from('CRMService.OrderItems').where({ 
+                parent_ID: order.ID
+            }); 
+                
+        } else if (req.user.is('Customer')) {
+            console.log("Customer");
+            items = await SELECT.from('CRMService.OrderItems').where({ 
+                parent_ID: order.ID, 
+                'parent.customer_ID': req.user.attr.customerId 
+            });
+        } else {
+            console.log('Else/Vendor');
+            items = await SELECT.from('CRMService.OrderItems').where({ 
+                parent_ID: order.ID, 
+                'product.vendor_ID': req.user.attr.vendorId 
+            });
+        }
+       
+        console.log('Associated Line Items:', items);
+        
+        // 2. Calculate totals (Quantity * Price)
+        let calculatedTotal = 0;
+        for (const item of items) {
+            if (item && item.quantity && item.priceAtOrder) {
+                calculatedTotal += (item.quantity * item.priceAtOrder);
+            }
+        }
+
+        // 3. Attach it to your virtual UI field safely
+        order.totalAmount = calculatedTotal;
+    }
+    console.log("Orders processing cycle complete:", orders);
+});
+
+
+
+
         this.before('CREATE', 'Feedbacks', async (req) => {
             console.log('--> Backend feedback creation handler triggered!');
             if (req.target && req.target.name !== 'CRMService.Feedbacks') {

@@ -90,6 +90,10 @@ entity ProductReviews as select from my.Feedback {
         { grant: '*', to: 'CRMAdmin' }, 
         { grant: '*', to: 'Vendor', where: 'vendor_ID = $user.vendorId' }
     ];
+    entity ProductImage as projection on my.ProductImage {
+        *,
+        product : redirected to Products
+    };
     @odata.draft.enabled
     entity MainCategories as projection on my.Category;
     entity SubCategories as projection on my.SubCategory;

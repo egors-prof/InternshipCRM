@@ -48,14 +48,35 @@ module.exports = class CRMService extends cds.ApplicationService {
             }
         });
 
+
+
         this.after('READ','Customers', async (results,req) => {
             console.log(results);
             const customers = Array.isArray(results) ? results : [results];
         
             for (const customer of customers) {
+                // const completeDataTree = await SELECT.from(Customers, c => {
+                //     c.ID,
+                //     c.feedbacks(fb => { fb.rating }),
+                //     c.orders(o => {
+                //         o.items(item => {
+                //             item.quantity,
+                //             item.priceAtOrder
+                //         })
+                //     })
+                // }).where({ ID: customer.ID });
                 const feedbacks = await SELECT.from('Feedback').where({ customer_ID: customer.ID });
+                console.log(customer.ID);
+                const items = await SELECT.from(Orders,o=>{
+                    o.items(item=>{
+                        item.quantity,
+                        item.priceAtOrder
+                    })
+                }).where({ID:customer.ID})
+                console.log("items ",items);
                 const orders = await SELECT.from('Order').where({ customer_ID: customer.ID,});
                 const orderIds = orders.map(order => order.ID);
+                console.log(orderIds);
 
                 console.log('orders:',orders)
                 
@@ -215,9 +236,11 @@ this.before('SAVE', 'Products', async (req) => {
         
         // 2. Calculate the math (Quantity * Price)
         let calculatedTotal = 0;
-        for (const item of items) {
-            calculatedTotal += (item.quantity * item.priceAtOrder);
-        }
+        calculatedTotal = items.reduce((calculatedTotal,item)=>calculatedTotal+(item.quantity*item.priceAtOrder),0);
+        console.log("calc",calculatedTotal); 
+        // for (const item of items) {
+        //     calculatedTotal += (item.quantity * item.priceAtOrder);
+        // }
 
         // 3. Attach it to your virtual field!
         order.totalAmount = calculatedTotal;

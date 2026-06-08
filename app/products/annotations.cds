@@ -16,18 +16,30 @@ annotate crm.Products with @(
             $Type : 'UI.DataField',
             Value : desc,        // <--- This puts the Product Description right below it as a subtitle
         },
-        ImageUrl       : content
+        // ImageUrl       : mainImage.content
     }
 );
 
-annotate crm.Products with {
-    // Media configuration: Links the content to its dynamic mimetype
-    content   @Core.MediaType : mediaType
-              @Core.ContentDisposition.Type: 'inline'
-              @UI.IsImage : true;  // This forces the content to render as an image in the Object Page header and as a thumbnail in the List Report rows
+annotate crm.ProductImage with {
+    
+    content   
+        @Core.MediaType : mediaType
+        @Core.ContentDisposition.Type: 'inline'
+        @UI.IsImage : true;
               
     mediaType @Core.IsMediaType: true;
+};
 
+annotate crm.Products with {
+    
+    content   
+        @Core.MediaType : mediaType
+        @Core.ContentDisposition.Type: 'inline'
+        @UI.IsImage : true;
+              
+    mediaType @Core.IsMediaType: true;
+};
+annotate crm.Products with {
     // Hardcoded currency setup for price displaying
     price     @Measures.ISOCurrency : 'USD';
 
@@ -105,7 +117,15 @@ annotate crm.Products with @(
         Data : [
             { $Type : 'UI.DataField', Value : title, Label : 'Product Name' },
             { $Type : 'UI.DataField', Value : price, Label : 'Unit Price' },
-            { $Type : 'UI.DataField', Value : stock, Label : 'Inventory Count' }
+            { $Type : 'UI.DataField', Value : stock, Label : 'Inventory Count' },
+            {
+            $Type : 'UI.DataField',
+            Value : content,       
+            Label : 'Image Preview',
+            @UI.IsImageURL : true,
+            @Core.MediaType : mediaType,
+            @Core.ContentDisposition.Type: 'inline',
+        },
         ]
     }
 );
@@ -220,14 +240,29 @@ annotate crm.Products with @(
     UI.FieldGroup #ProductMediaUploader : {
         $Type : 'UI.FieldGroupType',
         Data : [
-            {
-                $Type : 'UI.DataField',
-                Value : content,     // Leaving ONLY content here turns it into an interactive File Upload/Drop zone
-                Label : 'Product Image File'
-            }
+            // {
+            //     $Type : 'UI.DataField',
+            //     Value : images.content,     // Leaving ONLY content here turns it into an interactive File Upload/Drop zone
+            //     Label : 'Product Image File'
+            // }
         ]
     }
 );
+
+
+annotate crm.ProductImage with @(
+    UI.LineItem : [
+        {
+            $Type : 'UI.DataField',
+            Value : content,       
+            Label : 'Image Preview',
+            @Core.MediaType : mediaType,
+            @Core.ContentDisposition.Type: 'inline',
+            @UI.IsImage : true
+        }
+    ]
+);
+
 
 // Main Layout Assembly: Packs Block A and Block B side-by-side into a beautiful grid dashboard
 annotate crm.Products with @(
@@ -263,6 +298,12 @@ annotate crm.Products with @(
             ID    : 'ReviewsFacet',
             Label : 'Customer Reviews',
             Target: 'reviews/@UI.LineItem' 
+        },
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'ReviewsFacetPhotos',
+            Label : 'Product Images',
+            Target: 'images/@UI.LineItem' 
         }
 
     ]

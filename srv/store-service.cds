@@ -3,7 +3,12 @@ service PublicStorefrontService {
     @readonly
     entity Products as projection on my.Product {
         *,
-        reviews : Association to many ProductReviews on reviews.product_ID = $self.ID
+        reviews : Association to many ProductReviews on reviews.product_ID = $self.ID,
+        images  : Association to many ProductImage on images.product = $self,
+    };
+    entity ProductImage as projection on my.ProductImage {
+        *,
+        product : redirected to Products
     };
 
     entity ProductReviews as select from my.Feedback {
@@ -25,7 +30,8 @@ service PublicStorefrontService {
     @odata.draft.enabled
     entity Orders as projection on my.Order {
         *,
-        customer : redirected to MyProfile
+        customer : redirected to MyProfile,
+        items    : Composition of many OrderItems on items.parent = $self 
     };
     
     annotate Orders with @restrict: [
@@ -34,16 +40,13 @@ service PublicStorefrontService {
     
     entity OrderItems as projection on my.OrderItems {
         *,
-        product.content   as product_content @(Core.MediaType: product_mediaType,
-                                              Core.ContentDisposition.Type: 'inline',
-                                              UI.IsImage : true),  
-        product.mediaType as product_mediaType, 
-        product.fileName  as product_fileName
+        parent : redirected to Orders,
+        product.ID as product_vendor_ID
+        
+         
     };
     
-    annotate OrderItems with @restrict: [
-        { grant: ['READ', 'CREATE'], to: 'Customer', where: 'parent.customer_ID = $user.customerId' }
-    ];
+    
 
     entity Interactions as projection on my.Interaction {
         *,
