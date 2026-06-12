@@ -1,0 +1,11 @@
+{
+  "name": "crm-approuter",
+  "version": "1.0.0",
+  "description": "SAP Node.js Approuter",
+  "dependencies": {
+    "@sap/approuter": "^11.0.0"
+  },
+  "scripts": {
+    "start": "node node_modules/@sap/approuter/approuter.js"
+  }
+}

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f3f4f5; 
+            color: #32363a; 
+            margin: 0; 
+            padding: 40px 20px; 
+            text-align: center;
+        }
+        
+        h1 { color: #1c2d42; margin-bottom: 5px; }
+        p { color: #65778b; margin-top: 0; margin-bottom: 30px; }
+
+        .container { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 25px; 
+            max-width: 900px; 
+            margin: 0 auto; 
+        }
+
+        .tile { 
+            display: none; /* Crucial: JavaScript will turn this into 'flex' once roles load */
+            background: #ffffff; 
+            padding: 30px; 
+            border-radius: 8px; 
+            text-decoration: none; 
+            color: inherit; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
+            transition: all 0.2s ease; 
+            border-left: 6px solid #ccc; 
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .tile:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
+        }
+
+        /* Color accents matching your workspace assignments */
+        #customersTile { border-left-color: #0a6ed1; }
+        #vendorsTile { border-left-color: #d32f2f; }
+        #productsTile { border-left-color: #2e7d32; }
+
+        .tile h3 { margin: 0 0 10px 0; font-size: 1.3rem; color: #1c2d42; }
+        .tile p { margin: 0; color: #526475; font-size: 0.95rem; line-height: 1.5; }
+    </style>>
+</head>
+<body>
+    <h1>Welcome to the Unified Portal</h1>
+    <p>Please select a workspace to begin.</p>
+
+    <div class="container">
+        <a id="customersTile" href="/userapp/index.html" class="tile">
+            <h3>CRM Workspace</h3>
+            <p>Manage Customers</p>
+        </a>
+
+        <a id="vendorsTile" href="/vendors/index.html" class="tile">
+            <h3>Vendor Admin</h3>
+            <p>Manage Vendors</p>
+        </a>
+
+        <a id="productsTile" href="/products/index.html" class="tile">
+            <h3>Product Catalog</h3>
+            <p>Manage Products</p>
+        </a>
+    </div>
+
+    <script>
+        // 1. Fetch the roles from your CAP backend
+        fetch('/odata/v4/crm/getMyRoles()')
+            .then(response => response.json())
+            .then(data => {
+                // CAP OData returns the result inside a "value" object
+                
+                console.log(data);
+
+                // 2. CRM Admin Logic (Sees Customers and Vendors)
+                if (data.isCRMAdmin) {
+                    document.getElementById('customersTile').style.display = 'flex';
+                    document.getElementById('vendorsTile').style.display = 'flex';
+                } 
+                
+                // 3. Vendor Admin Logic (Sees Customers and Products)
+                else if (data.isVendor) {
+                    document.getElementById('customersTile').style.display = 'flex';
+                    document.getElementById('productsTile').style.display = 'flex';
+                }
+            })
+            .catch(err => {
+                console.error("Could not fetch user roles.", err);
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+_schema-version: 3.3.0
+ID: crm-project
+description: A simple CAP project.
+version: 1.0.0
+
+modules:
+- name: crm-project-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: crm-project-auth
+  - name: crm-project-db
+  provides:
+  - name: srv-api  
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+    instances: 1
+  build-parameters:
+    builder: npm-ci
+
+- name: crm-project-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: crm-project-db
+  parameters:
+    buildpack: nodejs_buildpack
+
+- name: crm-project
+  type: approuter.nodejs
+  path: app/router
+  requires:
+  - name: srv-api  
+    group: destinations
+    properties:
+      forwardAuthToken: true
+      name: srv-api
+      url: ~{srv-url}
+  - name: crm-project-auth
+  - name: crm-project-destination-service
+  - name: crm-project-repo-rt   
+  provides:
+  - name: app-api
+    properties:
+      app-protocol: ${protocol}
+      app-uri: ${default-uri}
+  parameters:
+    disk-quota: 512M
+    keep-existing-routes: true
+    memory: 512M
+  properties:
+    XSUAA_AUTHENTICATION_METHOD: route
+
+- name: crm-project-app-content
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: crm-project-repo-host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - userapp.zip
+      name: userapp
+      target-path: resources/
+    - artifacts:
+      - products.zip
+      name: products
+      target-path: resources/
+    - artifacts:
+      - vendors.zip
+      name: vendors
+      target-path: resources/
+
+- name: userapp
+  type: html5
+  path: app/userapp
+  build-parameters:
+    build-result: dist
+    builder: custom
+    supported-platforms: []
+    commands:
+    - powershell -Command "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue"
+    - powershell -Command "New-Item -ItemType Directory -Force dist"
+    - powershell -Command "Compress-Archive -Path webapp\* -DestinationPath dist\userapp.zip -Force"
+
+- name: products
+  type: html5
+  path: app/products
+  build-parameters:
+    build-result: dist
+    builder: custom
+    supported-platforms: []
+    commands:
+    - powershell -Command "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue"
+    - powershell -Command "New-Item -ItemType Directory -Force dist"
+    - powershell -Command "Compress-Archive -Path webapp\* -DestinationPath dist\products.zip -Force"
+
+- name: vendors
+  type: html5
+  path: app/vendors
+  build-parameters:
+    build-result: dist
+    builder: custom
+    supported-platforms: []
+    commands:
+    - powershell -Command "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue"
+    - powershell -Command "New-Item -ItemType Directory -Force dist"
+    - powershell -Command "Compress-Archive -Path webapp\* -DestinationPath dist\vendors.zip -Force"
+
+resources:
+- name: crm-project-auth
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      oauth2-configuration:
+        redirect-uris:
+        - https://*~{app-api/app-uri}/**
+      tenant-mode: dedicated
+      xsappname: crm-project-${org}-${space}
+    path: ./xs-security.json
+    service: xsuaa
+    service-plan: application
+  requires:
+  - name: app-api
+
+- name: crm-project-repo-rt
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-runtime
+
+- name: crm-project-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    service: hana
+    service-plan: hdi-shared
+    service-name: crm-db-container
+
+- name: crm-project-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: crm-project-html5-service
+    service-plan: app-host
+
+- name: crm-project-destination-service
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+    version: 1.0.0
+    service: destination
+    service-name: crm-project-destination-service
+    service-plan: lite
+
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npm install
+    - npm uninstall @cap-js/cds-typer
+    - npx cds build --production
+    - npm install --save-dev @cap-js/cds-typer

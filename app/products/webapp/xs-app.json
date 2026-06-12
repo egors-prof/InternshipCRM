@@ -1,0 +1,10 @@
+{
+  "authenticationMethod": "route",
+  "routes": [
+    {
+      "source": "^(.*)$",
+      "authenticationType": "xsuaa",
+      "service": "html5-apps-repo-rt"
+    }
+  ]
+}

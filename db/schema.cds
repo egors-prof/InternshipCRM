@@ -22,25 +22,20 @@ entity CustomerStatuses : CodeList {
 }
 
 
-@readonly
+
 entity Interaction : cuid, managed {
-    caseNumber    : String(10);
+    caseNumber    : String(30);
     customer      : Association to Customer;
     vendor        : Association to Vendors;
     order         : Association to Order;
-    
+    orderItem     : Association to OrderItems;
     type          : Association to InteractionTypes; 
     priority      : Association to Priorities;       
     status        : Association to InteractionStatus; 
-
     currentOwner  : Association to Roles; 
-    
     title         : String(100);
     summary       : String(1000); 
-
     logs    : Composition of many InteractionLogs on logs.parent = $self;
-   
-
     resolution    : String(1000);
     reaction      : Association to one Feedback on reaction.interaction = $self;
 }
@@ -76,11 +71,10 @@ entity InteractionTypes : CodeList {
 
 
 entity Order : managed, cuid {
-    orderNumber  : String(10);
+    orderNumber  : String(30);
     virtual totalAmount : Decimal(15,2);
     status       : Association to Statuses;
     customer     : Association to Customer; 
-    
     items        : Composition of many OrderItems on items.parent = $self;
     reaction     : Association to one Feedback on reaction.order = $self;
 }
@@ -94,9 +88,6 @@ entity OrderItems : managed,cuid {
     priceAtOrder:Decimal(10,2) ;
     siblingItems : Association to many OrderItems on siblingItems.parent = $self.parent and siblingItems.ID != $self.ID;
     reaction : Association to one Feedback on reaction.orderItem = $self;
-
-    
-
 }
 entity Statuses : sap.common.CodeList {
     key code : String(10);
@@ -104,23 +95,25 @@ entity Statuses : sap.common.CodeList {
 }
 entity Feedback : cuid, managed {
     customer     : Association to Customer not null; 
-    
-   
     interaction  : Association to Interaction;
     order        : Association to Order;
     orderItem    : Association to OrderItems;
-    
     
     feedbackType : String(20) enum {
         INTERACTION = 'INTERACTION'; 
         SHOP_ORDER  = 'SHOP_ORDER';  
         VENDOR_ITEM = 'VENDOR_ITEM'; 
     };
-
-    
-    @assert.format : '^[1-5]$' 
+    @assert.range : [1,5]
     rating       : Integer; 
     comment      : String(1000);
+}
+
+
+
+entity Wishlists :managed,cuid {
+    customer    : Association to Customer; 
+    product         : Association to Product;
 }
 
 entity Product : managed, cuid {
@@ -133,7 +126,6 @@ entity Product : managed, cuid {
     stock        : Integer;
     timesOrdered : Integer;
     vendor       : Association to Vendors;
-    
 
     @Core.MediaType: mediaType
     @Core.ContentDisposition.Filename: fileName
@@ -142,10 +134,24 @@ entity Product : managed, cuid {
     mediaType    : String;
     fileName     : String(500);
 
+    images        : Composition of many ProductImage on images.product = $self;
+    
+
+
+
    
 }
 
-
+entity ProductImage : managed , cuid {
+    product      : Association to Product;
+    isMain       : Boolean default false;
+    @Core.MediaType: mediaType
+    @Core.ContentDisposition.Filename: fileName
+    content      : LargeBinary;
+    @Core.IsMediaType: true
+    mediaType    : String;
+    fileName     : String(500);
+}
 
 
 entity Category : managed, cuid {
@@ -178,5 +184,5 @@ entity Vendors :cuid, managed {
   address   : String;
   isActive  : Boolean default true;
   products  : Association to many Product on products.vendor = $self;
-  interactions : Composition of many Interaction on interactions.vendor = $self;
+  interactions : Association to many Interaction on interactions.vendor = $self;
 }
