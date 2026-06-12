@@ -36,7 +36,7 @@ entity ProductReviews as select from my.Feedback {
     key ID,
     rating,
     comment,
-    orderItem.product.ID as product_ID // Here, CAP allows path traversal in a SELECT!
+    orderItem.product.ID as product_ID 
 };
 
 
@@ -45,7 +45,7 @@ entity ProductReviews as select from my.Feedback {
         *,
         customer     : redirected to Customers,
         reaction     : redirected to Feedbacks,
-        logs         : redirected to InteractionLogs // 🟢 ADD THIS LINE
+        logs         : redirected to InteractionLogs 
     } actions {
         action escalateToVendor() returns Interactions;
         action createLog(text : String) returns InteractionLogs;
@@ -55,7 +55,8 @@ entity ProductReviews as select from my.Feedback {
         { grant: ['READ', 'CREATE', 'UPDATE', 'DELETE'], to: 'CRMAdmin' },
         { grant: ['READ', 'CREATE', 'UPDATE'], to: 'Vendor' },
         { grant: ['READ', 'CREATE'], to: 'Customer', where: 'customer_ID = $user.customerId' },
-        { grant: ['execute'], to: 'Vendor', named: 'createLog' }
+        { grant: '*', to: 'CRMAdmin', named: 'createLog' },
+        { grant: '*', to: 'Vendor', named: 'createLog' }
     ];
 
     entity InteractionLogs as projection on my.InteractionLogs{
@@ -75,11 +76,7 @@ entity ProductReviews as select from my.Feedback {
             grant: ['READ'], 
             to: 'Vendor', 
             where: 'isPrivate = false' 
-        },
-        // {
-        //     grant: '*',
-        //     to: 'Vendor'
-        // }
+        }
     ];
     @odata.draft.enabled
     entity Products as projection on my.Product{
@@ -152,6 +149,6 @@ entity ProductReviews as select from my.Feedback {
         isVendor   : Boolean;
         username   : String; 
     };
-    
+    @(requires: 'authenticated-user')
     function getMyRoles() returns UserRoles;
 }

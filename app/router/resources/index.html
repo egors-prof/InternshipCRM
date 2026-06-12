@@ -71,33 +71,38 @@
             <p>Manage Products</p>
         </a>
     </div>
+<script>
+  // 🌟 Step 1: Default everything to hidden so unauthorized users don't see a flash of tiles
+  document.getElementById('customersTile').style.display = 'none';
+  document.getElementById('vendorsTile').style.display = 'none';
+  document.getElementById('productsTile').style.display = 'none';
 
-    <script>
-        // Prepend /srv-api so Approuter routes this call directly to your Node.js CAP service
-        fetch('/srv-api/odata/v4/crm/getMyRoles()')
-            .then(response => {
-                if (!response.ok) throw new Error("Network status error: " + response.status);
-                return response.json();
-            })
-            .then(data => {
-                // Access the inner OData V4 value block object
-                const roles = data.value || data;
-                console.log("User Roles loaded:", roles);
+  fetch('/odata/v4/crm/getMyRoles()')
+    .then(response => {
+        if (!response.ok) {
+            console.log("Endpoint returned an status error, keeping fallback display active.");
+            return { isCRMAdmin: false, isVendor: false, username: "anonymous" };
+        }
+        return response.json();
+    })
+    .then(data => {
+        const roles = data.value || data;
+        console.log("User Roles loaded in background:", roles);
 
-                // Check Admin authorization rules
-                if (roles.isCRMAdmin) {
-                    document.getElementById('customersTile').style.display = 'flex';
-                    document.getElementById('vendorsTile').style.display = 'flex';
-                } 
-                // Check Vendor authorization rules
-                else if (roles.isVendor) {
-                    document.getElementById('customersTile').style.display = 'flex';
-                    document.getElementById('productsTile').style.display = 'flex';
-                }
-            })
-            .catch(err => {
-                console.error("Could not fetch user roles securely.", err);
-            });
-    </script>
+        // 🌟 Step 2: Dynamically turn on ONLY the tiles this user has access to
+        if (roles.isCRMAdmin) {
+            document.getElementById('customersTile').style.display = 'flex';
+            document.getElementById('productsTile').style.display = 'flex'; // Admins can manage products too
+        }
+        
+        if (roles.isVendor) {
+            document.getElementById('vendorsTile').style.display = 'flex';
+            document.getElementById('productsTile').style.display = 'flex'; // Vendors can view products
+        }
+    })
+    .catch(err => {
+        console.log("Network bypass caught, keeping fallback display active:", err.message);
+    });
+</script>
 </body>
 </html>

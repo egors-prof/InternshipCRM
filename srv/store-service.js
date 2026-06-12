@@ -14,6 +14,7 @@ module.exports = class CRMService extends cds.ApplicationService {
 
             let oCustomerDetails = null;
             const sCustomerId = req.user?.attr?.customerId || null;
+            console.log("user: ",req.user);
             
 
             if (sCustomerId) {

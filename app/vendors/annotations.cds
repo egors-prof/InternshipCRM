@@ -115,6 +115,5 @@ annotate service.Interactions with @(
 // 4. METADATA MASKING (COLUMN-LEVEL SECURITY)
 // ==========================================
 annotate service.InteractionLogs with {
-    // This absolutely hides the "Private Note" indicator field from Bob the Vendor's UI components
     isPrivate @UI.Hidden: true;
 };

@@ -28,18 +28,13 @@ entity Interaction : cuid, managed {
     customer      : Association to Customer;
     vendor        : Association to Vendors;
     order         : Association to Order;
-    
     orderItem     : Association to OrderItems;
-
     type          : Association to InteractionTypes; 
     priority      : Association to Priorities;       
     status        : Association to InteractionStatus; 
-
     currentOwner  : Association to Roles; 
-    
     title         : String(100);
     summary       : String(1000); 
-
     logs    : Composition of many InteractionLogs on logs.parent = $self;
     resolution    : String(1000);
     reaction      : Association to one Feedback on reaction.interaction = $self;
@@ -80,7 +75,6 @@ entity Order : managed, cuid {
     virtual totalAmount : Decimal(15,2);
     status       : Association to Statuses;
     customer     : Association to Customer; 
-    
     items        : Composition of many OrderItems on items.parent = $self;
     reaction     : Association to one Feedback on reaction.order = $self;
 }
@@ -94,9 +88,6 @@ entity OrderItems : managed,cuid {
     priceAtOrder:Decimal(10,2) ;
     siblingItems : Association to many OrderItems on siblingItems.parent = $self.parent and siblingItems.ID != $self.ID;
     reaction : Association to one Feedback on reaction.orderItem = $self;
-
-    
-
 }
 entity Statuses : sap.common.CodeList {
     key code : String(10);
@@ -104,8 +95,6 @@ entity Statuses : sap.common.CodeList {
 }
 entity Feedback : cuid, managed {
     customer     : Association to Customer not null; 
-    
-   
     interaction  : Association to Interaction;
     order        : Association to Order;
     orderItem    : Association to OrderItems;
@@ -115,8 +104,6 @@ entity Feedback : cuid, managed {
         SHOP_ORDER  = 'SHOP_ORDER';  
         VENDOR_ITEM = 'VENDOR_ITEM'; 
     };
-
-    
     @assert.range : [1,5]
     rating       : Integer; 
     comment      : String(1000);
@@ -125,7 +112,7 @@ entity Feedback : cuid, managed {
 
 
 entity Wishlists :managed,cuid {
-    customer_ID     : String(36); 
+    customer    : Association to Customer; 
     product         : Association to Product;
 }
 
@@ -150,12 +137,7 @@ entity Product : managed, cuid {
     images        : Composition of many ProductImage on images.product = $self;
     
 
-    // @Core.MediaType: mediaType
-    // @Core.ContentDisposition.Filename: fileName
-    // content      : LargeBinary;
-    // @Core.IsMediaType: true
-    // mediaType    : String;
-    // fileName     : String(500);
+
 
    
 }
