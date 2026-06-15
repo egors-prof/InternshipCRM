@@ -1,20 +1,58 @@
 {
-  "xsappname": "crm-project",
+  "xsappname": "crm-project-f37788detrial-dev",
   "tenant-mode": "dedicated",
-  "description": "Security profile for CRM application",
+  "description": "Security profile of called application",
   "scopes": [
     {
-      "name": "$XSAPPNAME.User",
-      "description": "Standard User Access"
+      "name": "$XSAPPNAME.CRMAdmin",
+      "description": "Administrator Access"
+    },
+    {
+      "name": "$XSAPPNAME.Vendor",
+      "description": "Vendor Partner Access"
+    },
+    {
+      "name": "$XSAPPNAME.Customer",
+      "description": "Customer Portal Access"
     }
   ],
   "role-templates": [
     {
-      "name": "Token_Exchange",
-      "description": "UAA Token Exchange Role",
-      "scope-references": [
-        "$XSAPPNAME.User"
-      ]
+      "name": "CRMAdmin_Template",
+      "description": "Admin Roles",
+      "scope-references": ["$XSAPPNAME.CRMAdmin"]
+    },
+    {
+      "name": "Vendor_Template",
+      "description": "Vendor Partner Roles",
+      "scope-references": ["$XSAPPNAME.Vendor"],
+      "attribute-references": ["vendorId"]
+    },
+    {
+      "name": "Customer_Template",
+      "description": "Customer Portal Roles",
+      "scope-references": ["$XSAPPNAME.Customer"],
+      "attribute-references": ["customerId"]
     }
-  ]
+  ],
+  "attributes": [
+    {
+      "name": "vendorId",
+      "description": "SAP CRM Internal Vendor GUID Assignment",
+      "valueType": "string"
+    },
+    {
+      "name": "customerId",
+      "description": "SAP CRM Customer Record GUID Assignment",
+      "valueType": "string"
+    }
+  ],
+  "oauth2-configuration": {
+    "redirect-uris": [
+      "https://f37788detrial-dev-crm-project.cfapps.us10-001.hana.ondemand.com/**",
+      "https://f37788detrial-dev-crm-project-srv.cfapps.us10-001.hana.ondemand.com/**",
+      "https://f37788detrial-dev-com-project-approuter.cfapps.us10-001.hana.ondemand.com/**",
+      "https://*.cfapps.us10-001.hana.ondemand.com/**"
+    ]
+  }
 }

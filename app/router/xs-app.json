@@ -1,29 +1,24 @@
 {
-  "welcomeFile": "/index.html",
+  "welcomeFile": "index.html",
+  "authenticationMethod": "route",
   "routes": [
     {
-      "source": "^/index.html$",
-      "localDir": "resources",
-      "authenticationType": "none"
-    },
-    {
-      "source": "^/srv-api/Products(.*)$",
-      "destination": "srv-api",
-      "authenticationType": "none",
-      "methods": [
-        "GET"
-      ]
-    },
-    {
-      "source": "^/srv-api/Products(.*)$",
+      "source": "^/srv-api/getMyRoles(.*)$", 
       "destination": "srv-api",
       "authenticationType": "xsuaa",
-      "methods": [
-        "POST",
-        "PUT",
-        "PATCH",
-        "DELETE"
-      ]
+      "csrfProtection": false
+    },
+    {
+      "source": "^/odata/v4/crm/(.*)$",
+      "target": "/odata/v4/crm/$1",
+      "destination": "srv-api",
+      "authenticationType": "xsuaa"
+    },
+    {
+      "source": "^/odata/v4/public-storefront/(.*)$",
+      "target": "/odata/v4/public-storefront/$1",
+      "destination": "srv-api",
+      "authenticationType": "xsuaa"
     },
     {
       "source": "^/srv-api/(.*)$",
@@ -31,9 +26,27 @@
       "authenticationType": "xsuaa"
     },
     {
+      "source": "^/userapp/(.*)$",
+      "target": "$1",
+      "service": "html5-apps-repo-rt",
+      "authenticationType": "xsuaa"
+    },
+    {
+      "source": "^/products/(.*)$",
+      "target": "$1",
+      "service": "html5-apps-repo-rt",
+      "authenticationType": "xsuaa"
+    },
+    {
+      "source": "^/vendors/(.*)$",
+      "target": "$1",
+      "service": "html5-apps-repo-rt",
+      "authenticationType": "xsuaa"
+    },
+    {
       "source": "^/(.*)$",
       "localDir": "resources",
-      "authenticationType": "none"
+      "authenticationType": "xsuaa"
     }
   ]
 }

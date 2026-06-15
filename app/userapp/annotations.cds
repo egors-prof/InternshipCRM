@@ -297,6 +297,14 @@ annotate service.Interactions with {
         Common.TextArrangement : #TextOnly
     );
 };
+
+annotate service.Interactions with @Common.SideEffects : {
+    $Type : 'Common.SideEffectsType',
+    TriggerAction : 'CRMService.createLog',
+    TargetProperties : [
+        'logs' 
+    ]
+};
 annotate service.Interactions with @(
     UI.FieldGroup #Interactions : {
         $Type : 'UI.FieldGroupType',

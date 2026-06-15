@@ -13,19 +13,10 @@ annotate crm.Products with @(
             Value : desc,        
         },
         ImageUrl       : content
-
     }
 );
 
-annotate crm.Products with {
-    content   @Core.MediaType : mediaType
-              @Core.ContentDisposition.Type: 'inline'
-              @UI.IsImage : true;  
-              
-    mediaType @Core.IsMediaType: true;
-
-}
-annotate crm.Products with {
+annotate crm.ProductImage with {
     
     content   
         @Core.MediaType : mediaType
@@ -34,8 +25,15 @@ annotate crm.Products with {
               
     mediaType @Core.IsMediaType: true;
 };
+
 annotate crm.Products with {
-  
+    content   @Core.MediaType : mediaType
+              @Core.ContentDisposition.Type: 'inline'
+              @UI.IsImage : true;  
+              
+    mediaType @Core.IsMediaType: true;
+
+
     price     @Measures.ISOCurrency : 'USD';
 
     stock     @HTML5.ControlHint : #StepInput
@@ -104,7 +102,15 @@ annotate crm.Products with @(
         Data : [
             { $Type : 'UI.DataField', Value : title, Label : 'Product Name' },
             { $Type : 'UI.DataField', Value : price, Label : 'Unit Price' },
-            { $Type : 'UI.DataField', Value : stock, Label : 'Inventory Count' }
+            { $Type : 'UI.DataField', Value : stock, Label : 'Inventory Count' },
+            {
+            $Type : 'UI.DataField',
+            Value : content,       
+            Label : 'Image Preview',
+            @UI.IsImageURL : true,
+            @Core.MediaType : mediaType,
+            @Core.ContentDisposition.Type: 'inline',
+        },
         ]
     }
 );
@@ -227,6 +233,21 @@ annotate crm.ProductImage with @(
 );
 
 
+
+annotate crm.ProductImage with @(
+    UI.LineItem : [
+        {
+            $Type : 'UI.DataField',
+            Value : content,       
+            Label : 'Image Preview',
+            @Core.MediaType : mediaType,
+            @Core.ContentDisposition.Type: 'inline',
+            @UI.IsImage : true
+        }
+    ]
+);
+
+
 annotate crm.Products with @(
     UI.Facets : [
         {
@@ -260,6 +281,12 @@ annotate crm.Products with @(
             ID    : 'ReviewsFacet',
             Label : 'Customer Reviews',
             Target: 'reviews/@UI.LineItem' 
+        },
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'ReviewsFacetPhotos',
+            Label : 'Product Images',
+            Target: 'images/@UI.LineItem' 
         }
 
     ]

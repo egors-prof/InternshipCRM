@@ -6,6 +6,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@cap-js/hana": "^2",
+    "@sap/xssec": "4.13.0",
     "express": "^4"
   },
   "devDependencies": {
@@ -35,40 +36,45 @@
         }
       },
       "auth": {
-        "kind": "mocked",
-        "users": {
-          "alice": {
-            "password": "alice",
-            "roles": [
-              "CRMAdmin",
-              "admin"
-            ]
-          },
-          "bob": {
-            "password": "bob",
-            "roles": [
-              "Vendor"
-            ],
-            "attr": {
-              "vendorId": "30000000-0000-0000-0000-000000000001"
-            }
-          },
-          "charlie": {
-            "password": "charlie",
-            "roles": [
-              "Vendor"
-            ],
-            "attr": {
-              "vendorId": "30000000-0000-0000-0000-000000000002"
-            }
-          },
-          "john": {
-            "password": "john",
-            "roles": [
-              "Customer"
-            ],
-            "attr": {
-              "customerId": "1a9e8315-f455-4fd4-a323-ae4a3fb9acba"
+        "[production]": {
+          "kind": "xsuaa"
+        },
+        "[development]": {
+          "kind": "mocked",
+          "users": {
+            "alice": {
+              "password": "alice",
+              "roles": [
+                "CRMAdmin",
+                "admin"
+              ]
+            },
+            "bob": {
+              "password": "bob",
+              "roles": [
+                "Vendor"
+              ],
+              "attr": {
+                "vendorId": "30000000-0000-0000-0000-000000000001"
+              }
+            },
+            "charlie": {
+              "password": "charlie",
+              "roles": [
+                "Vendor"
+              ],
+              "attr": {
+                "vendorId": "30000000-0000-0000-0000-000000000002"
+              }
+            },
+            "john": {
+              "password": "john",
+              "roles": [
+                "Customer"
+              ],
+              "attr": {
+                "customerId": "1a9e8315-f455-4fd4-a323-ae4a3fb9acba"
+              }
             }
           }
         }

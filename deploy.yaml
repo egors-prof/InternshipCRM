@@ -50,8 +50,6 @@ modules:
     disk-quota: 512M
     keep-existing-routes: true
     memory: 512M
-  properties:
-    XSUAA_AUTHENTICATION_METHOD: route
 
 - name: crm-project-app-content
   type: com.sap.application.content
