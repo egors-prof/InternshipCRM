@@ -110,16 +110,13 @@ annotate service.Orders with {
     totalAmount @Measures.ISOCurrency : 'USD';
 };
 
-// 1. Tell the Order entity how to draw its Pop-Up
 annotate service.Orders with @(
-    // The Quick View looks for a FieldGroup to display
     UI.QuickViewFacets : [
         {
             $Type : 'UI.ReferenceFacet',
             Target : '@UI.FieldGroup#OrderPopUp'
         }
     ],
-    // The actual fields inside the Pop-Up
     UI.FieldGroup #OrderPopUp : {
         Data : [
             { $Type : 'UI.DataField', Value : orderNumber, Label : 'Order Number' },
@@ -278,51 +275,6 @@ annotate service.OrderItems with {
         IsImage:true
     );
 };
-// annotate service.OrderItems with @Common.SideEffects : {
-//     $Type : 'Common.SideEffectType',
-//     SourceProperties : [ product_ID ],
-//     TargetProperties : [ priceAtOrder ] 
-// };
-// annotate service.OrderItems with {
-//     product @(
-//         Common.ValueList : {
-//             $Type : 'Common.ValueListType',
-//             CollectionPath : 'Products',
-//             Parameters : [
-//                 {
-//                     $Type : 'Common.ValueListParameterInOut',
-//                     LocalDataProperty : product_ID,
-//                     ValueListProperty : 'ID'
-//                 },
-                
-//                 {
-//                     $Type : 'Common.ValueListParameterDisplayOnly',
-//                     ValueListProperty : 'title'
-//                 },
-//                 {
-//                     // Column 2
-//                     $Type : 'Common.ValueListParameterOut',
-//                     LocalDataProperty:priceAtOrder,
-//                     ValueListProperty : 'price'
-//                 },
-//                 {
-//                     // Column 3
-//                     $Type : 'Common.ValueListParameterDisplayOnly',
-//                     ValueListProperty : 'stock'
-//                 },
-                
-//                 {
-//                     // Column 4
-//                     $Type : 'Common.ValueListParameterDisplayOnly',
-//                     ValueListProperty : 'category_ID', 
-//                     Label : 'Category' // You can force a custom column header name here!
-//                 }
-//             ]
-//         },
-//         Common.Text : product.title,
-//         Common.TextArrangement : #TextOnly
-//     );
-// }
 
 annotate service.Interactions with {
     priority @(
@@ -337,7 +289,6 @@ annotate service.Interactions with {
                 },
                 {
                     $Type : 'Common.ValueListParameterDisplayOnly',
-                    // 🟢 FIXED: Lowercase 'name' to match your SAP CDS CodeList master column property
                     ValueListProperty : 'name' 
                 }
             ]
@@ -481,8 +432,6 @@ annotate service.InteractionLogs with @(
             $Type: 'UI.DataFieldForAction',
             Action: 'CRMService.makeVisibleToVendor', 
             Label: 'Make Visible to Vendor',
-            // Inline: true,
-            // RequiresContext: true ,
             @UI.Hidden: {
                 $edmJson: {
                     $Eq: [ 

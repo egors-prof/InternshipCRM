@@ -47,16 +47,11 @@ annotate service.Vendors with @(
 
 annotate service.OrderItems with {
     product_content @(
-        Core.MediaType : product_mediaType,  // 👈 Fixes the missing element error!
+        Core.MediaType : product_mediaType,
         Core.ContentDisposition.Filename : product_fileName
     );
 };
 annotate service.Interactions with @(
-    // UI.HeaderInfo : {
-    //     TypeName       : 'Assigned Ticket',
-    //     TypeNamePlural : 'Assigned Tickets',
-    //     Title          : { $Type : 'UI.DataField', Value : caseNumber }
-    // },
     UI.LineItem : [
         { $Type : 'UI.DataField', Value : caseNumber, Label : 'Case Number', @UI.Importance : #High },
         { $Type : 'UI.DataField', Value : title, Label : 'Subject', @UI.Importance : #High },
@@ -64,18 +59,7 @@ annotate service.Interactions with @(
         { $Type : 'UI.DataField', Value : priority_code, Label : 'Priority', @UI.Importance : #Medium },
         { $Type : 'UI.DataField', Value : summary, Label : 'Description', @UI.Importance : #Low }
     ],
-    // UI.Facets : [
-    //     {
-    //         $Type  : 'UI.ReferenceFacet',
-    //         Label  : 'Ticket Details',
-    //         Target : '@UI.FieldGroup#TicketDetails'
-    //     },
-    //     {
-    //         $Type  : 'UI.ReferenceFacet',
-    //         Label  : 'Correspondence Logs',
-    //         Target : 'logs/@UI.LineItem' // Links directly to the Vendor's chat facet
-    //     }
-    // ],
+
     UI.FieldGroup #TicketDetails : {
         Data : [
             { $Type : 'UI.DataField', Value : caseNumber, Label : 'Case Number' },
@@ -88,33 +72,6 @@ annotate service.Interactions with @(
 
 
 
-// annotate service.InteractionLogs with @(
-//     UI.LineItem : [
-//         { 
-//             $Type : 'UI.DataField', 
-//             Value : author, 
-//             Label : 'By', 
-//             @UI.Importance : #High 
-//         },
-//         { 
-//             $Type : 'UI.DataField', 
-//             Value : text, 
-//             Label : 'Message', 
-//             @UI.Importance : #High 
-//         },
-//         { 
-//             $Type : 'UI.DataField', 
-//             Value : createdAt, 
-//             Label : 'Timestamp', 
-//             @UI.Importance : #Medium 
-//         }
-//     ]
-// );
-
-// ==========================================
-// 4. METADATA MASKING (COLUMN-LEVEL SECURITY)
-// ==========================================
 annotate service.InteractionLogs with {
-    // This absolutely hides the "Private Note" indicator field from Bob the Vendor's UI components
     isPrivate @UI.Hidden: true;
 };
