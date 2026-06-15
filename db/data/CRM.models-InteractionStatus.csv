@@ -1,0 +1,6 @@
+code,name,descr,criticality
+NEW,New,Newly opened ticket,5
+IN_PROGRESS,In Progress,Actively being investigated,0
+WAITING,Waiting,Waiting on customer or vendor reply,2
+RESOLVED,Resolved,Solution has been provided,3
+CLOSED,Closed,Ticket is permanently closed,3

@@ -1,0 +1,4 @@
+code,name,descr
+GOLD,Gold Customer,High priority VIP accounts
+SILVER,Silver Customer,Standard mid-tier loyalty tier
+BRONZE,Bronze Customer,New or low-frequency accounts

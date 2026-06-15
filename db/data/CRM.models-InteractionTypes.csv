@@ -1,0 +1,6 @@
+code,name,descr
+INQUIRY,Product Inquiry,Customer asking about product features or availability
+COMPLAINT,Product Complaint,Customer reporting a defect or issue with a purchased product
+SUPPORT,Technical Support,Customer needing help using or installing the product
+FEEDBACK,General Feedback,Customer providing suggestions or general comments
+RETURN,Return Request,Customer initiating a return or refund process

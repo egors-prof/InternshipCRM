@@ -1,0 +1,6 @@
+ID,firstName,lastName,email,customerStatus_code
+1a9e8315-f455-4fd4-a323-ae4a3fb9acba,John,Doe,john.doe@example.com,GOLD
+2b8f9426-a566-5fe5-b434-bf5b4fcafdbb,Jane,Smith,jane.smith@example.com,SILVER
+3c9a0537-b677-6f66-c545-ca6c5adba1cc,Alex,Jones,alex.jones@example.com,BRONZE
+4d0b1648-c788-7a77-d656-db7d6bcbcadd,Emily,Brown,emily.brown@example.com,BRONZE
+5e1c2759-d899-8b88-e767-ec8e7cdcdbfe,Michael,Green,michael.green@example.com,GOLD

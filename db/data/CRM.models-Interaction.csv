@@ -1,0 +1,2 @@
+ID,caseNumber,customer_ID,vendor_ID,order_ID,type_code,priority_code,status_code,currentOwner_code,title,summary,resolution
+123e4567-e89b-12d3-a456-426614174000,ORD-001,1a9e8315-f455-4fd4-a323-ae4a3fb9acba,30000000-0000-0000-0000-000000000001,a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d,INQUIRY,HIGH,NEW,ADMIN,"Issue with Order #12345","Customer reports an issue with their recent order.",Repackaging order

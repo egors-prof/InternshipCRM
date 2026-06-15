@@ -1,0 +1,6 @@
+ID,name,contact,email,address,isActive
+30000000-0000-0000-0000-000000000001,Global Tech,Bob Smith,bob@globaltech.com,100 Innovation Way,true
+30000000-0000-0000-0000-000000000002,Acme Corp,Charlie Brown,charlie@acme.com,42 Industrial Blvd,true
+30000000-0000-0000-0000-000000000003,Nexus Logistics,Sarah Jenkins,sarah.j@nexus.log,789 Supply Chain Rd,true
+30000000-0000-0000-0000-000000000004,Apex Solutions,David Vance,d.vance@apexsol.com,55 Horizon Suite,true
+30000000-0000-0000-0000-000000000005,Omni Retail,Elena Rostova,elena@omniretail.com,12 Marketplace Ave,true

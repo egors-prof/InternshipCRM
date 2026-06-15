@@ -1,0 +1,100 @@
+{
+  "name": "crm",
+  "version": "1.0.0",
+  "description": "Secure Helpdesk System",
+  "repository": "mock",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@cap-js/hana": "^2",
+    "@sap/xssec": "4.13.0",
+    "express": "^4"
+  },
+  "devDependencies": {
+    "@cap-js/cds-typer": "^0.39.1",
+    "@cap-js/cds-types": "^0.16.0",
+    "@cap-js/sqlite": "^2",
+    "@sap/cds": "^9.9.1",
+    "@sap/cds-dk": "^9",
+    "@types/node": "^25.9.1",
+    "cds-plugin-ui5": "^0.13.0",
+    "sqlite3": "^5.1.7",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch-userapp": "cds watch --open userapp/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-vendors": "cds watch --open vendors/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-products": "cds watch --open products/index.html?sap-ui-xx-viewCache=false --livereload false"
+  },
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "credentials": {
+          "url": "crm-demo.db"
+        }
+      },
+      "auth": {
+        "[production]": {
+          "kind": "xsuaa"
+        },
+        "[development]": {
+          "kind": "mocked",
+          "users": {
+            "alice": {
+              "password": "alice",
+              "roles": [
+                "CRMAdmin",
+                "admin"
+              ]
+            },
+            "bob": {
+              "password": "bob",
+              "roles": [
+                "Vendor"
+              ],
+              "attr": {
+                "vendorId": "30000000-0000-0000-0000-000000000001"
+              }
+            },
+            "charlie": {
+              "password": "charlie",
+              "roles": [
+                "Vendor"
+              ],
+              "attr": {
+                "vendorId": "30000000-0000-0000-0000-000000000002"
+              }
+            },
+            "john": {
+              "password": "john",
+              "roles": [
+                "Customer"
+              ],
+              "attr": {
+                "customerId": "1a9e8315-f455-4fd4-a323-ae4a3fb9acba"
+              }
+            }
+          }
+        }
+      },
+      "[production]": {
+        "db": {
+          "kind": "hana"
+        }
+      }
+    }
+  },
+  "workspaces": [
+    "app/*"
+  ],
+  "sapux": [
+    "app/userapp",
+    "app/vendors",
+    "app/products"
+  ],
+  "imports": {
+    "#cds-models/*": "./@cds-models/*/index.js"
+  }
+}
